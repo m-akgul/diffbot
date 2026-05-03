@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'rover_description'
+package_name = 'rover_gazebo'
 
 setup(
     name=package_name,
@@ -10,15 +10,14 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/urdf', ['urdf/rover.urdf']),
-        ('share/' + package_name + '/launch', ['launch/display.launch.py']),
-        ('share/' + package_name + '/rviz', ['rviz/rover.rviz']),
+        ('share/' + package_name + '/worlds', ['worlds/empty.sdf']),
+        ('share/' + package_name + '/launch', ['launch/spawn_robot.launch.py']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='merta',
     maintainer_email='81179831+m-akgul@users.noreply.github.com',
-    description='Robot description package for rover_bot',
+    description='Robot simulation package for rover_bot',
     license='Apache-2.0',
     extras_require={
         'test': [

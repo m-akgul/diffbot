@@ -2,6 +2,8 @@
 
 ## Launch file (Python)
 
+### Launch file in `robot_description` project
+
 1. Imports
 
     ```python
@@ -30,9 +32,16 @@
     1. Node (RViz)
 
         ```python
+            rviz_config = PathJoinSubstitution([
+                FindPackageShare('rover_description'),
+                'rviz',
+                'rover.rviz'
+            ])
+
             rviz_node = Node(
-              package='rviz2',
-              executable='rviz2'
+                package='rviz2',
+                executable='rviz2',
+                arguments=['-d', rviz_config]
             )
 
             return LaunchDescription([
@@ -43,6 +52,7 @@
         - `rviz_node` -> start a ROS node
             - which package -> `package='rviz2'`
             - which program inside that package -> `executable='rviz2'`
+            - load display config file -> `-d`
 
     2. Load URDF file
 
@@ -71,11 +81,11 @@
             )
         ```
 
-        - `parameters` -> list of parameters
+        - `parameters` -> list of ROS parameters (see `ros2 param list`)
         - `{} dictionary` -> key-value pairs
             - `robot_description` -> standard parameter name expected by the node
-        - `Command([...])` -> runs shell command
-        - `"cat file"` -> reads file contents
+        - `Command([...])` -> runs shell command, captures output and returns it as string
+            - `"cat file"` -> reads file contents
 
 3. Run launch file
 
@@ -83,6 +93,55 @@
 
     For this project:
     `ros2 launch rover_description display.launch.py`
+
+---
+
+### Launch file in `robot_gazebo` project
+
+1. Run Gazebo
+
+    ```python
+        from launch.actions import ExecuteProcess
+
+        world_path = PathJoinSubstitution([
+            FindPackageShare('rover_gazebo'),
+            'worlds',
+            'empty.sdf'
+        ])
+
+        gazebo = ExecuteProcess(
+            cmd=['gz', 'sim', world_path],
+            output='screen'
+        )
+    ```
+
+    - `ExecuteProcess` -> used for running any system commands
+        - `cmd` -> first item is executable, rest are arguments to it
+        - `output` ->**_(defaults to log)_** defines where the program's logs(stdout/stderr) go. Common options:
+            - `screen` -> prints logs directly in terminal
+            - `log` -> saves logs to ROS log files(~/.ros/log/)
+
+2. Spawn robot into Gazebo world
+
+    ```python
+        spawn_robot = Node(
+            package='ros_gz_sim',
+            executable='create',
+            arguments=[
+                '-name', 'rover_bot',
+                '-topic', 'robot_description'
+            ],
+            output='screen'
+        )
+    ```
+
+    - `ros_gz_sim` -> ROS-Gazebo integration package
+    - `create` -> the tool that spawns entities into Gazebo
+    - `arguments` -> command line inputs
+        - `-name` -> name of robot inside Gazebo
+        - `-topic` -> where robot model is
+
+    The code above equals to `ros2 run ros_gz_sim create -name rover_bot -topic robot_description`
 
 ---
 
@@ -127,8 +186,6 @@ If a file is not declared in `setup.py`:
     -> Installs `package.xml`
 
 3. Adding entries to `setup.py`
-
-    URDF file and launch file are NOT installed
     1. Install URDF file
 
         Add this to `data_files`:
@@ -157,31 +214,30 @@ If a file is not declared in `setup.py`:
         <?xml version="1.0"?>
         <robot name="rover_bot">
 
-            <!-- Base Link -->
-            <link name="base_link">
-                <visual>
-                     <origin xyz="0 0 0.07" />
-                     <geometry>
-                         <box size="0.5 0.3 0.1" />
-                     </geometry>
-                     <material name="grey" />
-                </visual>
-            </link>
+            <!-- Base Link and Chassis-->
+            <link name="base_link"/>
 
-            <link name="left_wheel">
+            <link name="chassis">
                 <visual>
-                     <geometry>
-                        <cylinder radius="0.07" length="0.02" />
-                     </geometry>
-                     <material name="red" />
+                    <origin xyz="0 0 0.07" />
+                    <geometry>
+                        <box size="0.5 0.3 0.1" />
+                    </geometry>
+                    <material name="grey" />
                 </visual>
+                <collision>
+                    <origin xyz="0 0 0.07" />
+                    <geometry>
+                        <box size="0.5 0.3 0.1" />
+                    </geometry>
+                </collision>
             </link>
         </robot>
     ```
 
     - `visual` -> specifies the shape of the object
         - `geometry` -> shape of the visual object. This can be one of the following `box`, `cylinder`, `sphere`, `mesh`
-        - `origin` -> **_(defaults to identity)_**
+        - `origin` -> _*_(defaults to identity)_**
             - `xyz` -> **_(defaults to zero vector)_**
             - `rpy` -> **_(defaults to identity)_**
         - `material` -> **_(you can reference the material by `name` attribute if you specify a material element outside of the `link` object, in the top level of `robot` element)_**
@@ -190,7 +246,7 @@ If a file is not declared in `setup.py`:
     - `collision` -> used for physics collision calculations. We can set `geometry` and `origin`: same options as in `visual`
     - `inertial` -> determines how the link responds to forces
         - `mass` -> mass of the link
-        - `origin` -> centre of mass, the point the link could "balance" on
+        - `origin` ->**_(optional)_** centre of mass, the point the link could "balance" on
             - `xyz` -> **_(defaults to zero vector)_** represents the position vector from link-frame-origin to center of mass
             - `rpy` -> **_(defaults to identity)_** represents the orientation of unit vectors of the center of mass relative to link-frame as a sequence of Euler rotations in radians
         - `inertia` -> rotational inertia matrix. Links's moments of inertia(ixx,iyy,izz) and product of inertia(ixy,ixz,iyz) about the center of mass for the fixed unit vectors of the center of mass
@@ -199,17 +255,17 @@ If a file is not declared in `setup.py`:
 
     ```xml
         <joint name="left_wheel_joint" type="continuous">
-            <parent link="base_link"/>
-            <child link="left_wheel"/>
-            <origin xyz="0.2 0.16 0.07" rpy="1.57 1.57 0"/>
-            <axis xyz="0 0 1"/>
+            <parent link="chassis" />
+            <child link="left_wheel" />
+            <origin xyz="0.2 0.16 0.07" rpy="-1.57 0 0" />
+            <axis xyz="0 0 1" />
         </joint>
     ```
 
     - `joint type` -> can be one of the following:
         - `revolute` -> hinge joint that rotates along the axis and has a limited range specified by `upper` and `lower` limits
         - `continuous` -> hinge joint that rotates around the axis and has no limits
-        - `prismatic` -> silding joint that slides along the axis and has a limited range specified by `upper` and `lower` limits
+        - `prismatic` -> sliding joint that slides along the axis and has a limited range specified by `upper` and `lower` limits
         - `fixed` -> no movement = does not require `<axis>, <calibration>, <dynamics>, <limits> or <safety_controller>`
         - `floating` -> allows motion for all 6 DoF
         - `planar` -> allows motion in a plane perpendicular to the axis
@@ -221,8 +277,8 @@ If a file is not declared in `setup.py`:
     - `limit` -> **_(required only for revolute and prismatic)_**
         - `lower` -> **_(optional: defaults to 0)_** in radians for revolute, in metres for prismatic
         - `upper` -> **_(optional: defaults to 0)_** in radians for revolute, in metres for prismatic
-        - `effort` -> **_(required)_** enforcing the maximum joint effort (|applied effort| < |effort|)
-        - `velocity` -> enforcing the maximum joint velocity (in radians per second [rad/s] for revolute joints, in metres per second [m/s] for prismatic joints)
+        - `effort` -> **_(required)_*_ enforcing the maximum joint effort (|applied effort| < |effort|)
+        - `velocity` -> ***(required)***enforcing the maximum joint velocity (in radians per second [rad/s] for revolute joints, in metres per second [m/s] for prismatic joints)
 
 3. Extra Tags
     - `gazebo` -> specify certain parameters that are used in gazebo simulation

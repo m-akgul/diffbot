@@ -1,21 +1,28 @@
 from launch import LaunchDescription
+from launch.actions import ExecuteProcess
 from launch_ros.actions import Node
 from launch.substitutions import Command, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 
+
 def generate_launch_description():
+
+    world_path = PathJoinSubstitution([
+        FindPackageShare('rover_gazebo'),
+        'worlds',
+        'empty.sdf'
+    ])
 
     urdf_path = PathJoinSubstitution([
         FindPackageShare('rover_description'),
         'urdf',
         'rover.urdf'
     ])
-
-    rviz_config = PathJoinSubstitution([
-        FindPackageShare('rover_description'),
-        'rviz',
-        'rover.rviz'
-    ])
+    
+    gazebo = ExecuteProcess(
+        cmd=['gz', 'sim', world_path],
+        output='screen'
+    )
 
     rsp_node = Node(
         package='robot_state_publisher',
@@ -30,14 +37,19 @@ def generate_launch_description():
         executable='joint_state_publisher'
     )
 
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        arguments=['-d', rviz_config]
+    spawn_robot = Node(
+        package='ros_gz_sim',
+        executable='create',
+        arguments=[
+            '-name', 'rover_bot',
+            '-topic', 'robot_description'
+        ],
+        output='screen'
     )
 
     return LaunchDescription([
-        jsp_node,
         rsp_node,
-        rviz_node
+        jsp_node,
+        gazebo,
+        spawn_robot
     ])

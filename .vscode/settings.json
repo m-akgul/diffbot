@@ -1,13 +1,13 @@
 {
-  "ROS2.distro": "jazzy",
-  "python.autoComplete.extraPaths": [
-    "/home/merta/rover_ws/install/rover_description/lib/python3.12/site-packages",
-    "/opt/ros/jazzy/lib/python3.12/site-packages"
-  ],
-  "python.analysis.extraPaths": [
-    "/home/merta/rover_ws/install/rover_description/lib/python3.12/site-packages",
-    "/opt/ros/jazzy/lib/python3.12/site-packages"
-  ],
-  "editor.autoIndentOnPaste": true,
-  "editor.indentSize": "tabSize"
+    "ROS2.distro": "jazzy",
+    "python.autoComplete.extraPaths": [
+        "/home/merta/rover_ws/install/rover_description/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/merta/rover_ws/install/rover_description/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "editor.autoIndentOnPaste": true,
+    "editor.indentSize": "tabSize"
 }
