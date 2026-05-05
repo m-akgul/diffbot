@@ -3,6 +3,7 @@ from launch.actions import ExecuteProcess
 from launch_ros.actions import Node
 from launch.substitutions import Command, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -28,7 +29,10 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         parameters=[{
-            'robot_description': Command(['cat ', urdf_path])
+            'robot_description': ParameterValue(
+                Command(['xacro ', urdf_path]),
+                value_type=str
+            )
         }]
     )
 
@@ -40,6 +44,7 @@ def generate_launch_description():
     spawn_robot = Node(
         package='ros_gz_sim',
         executable='create',
+        name="spawn_robot",
         arguments=[
             '-name', 'rover_bot',
             '-topic', 'robot_description'
@@ -47,9 +52,31 @@ def generate_launch_description():
         output='screen'
     )
 
+    cmd_vel_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='cmd_vel_bridge',
+        arguments=[
+            '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist'
+        ],
+        output='screen'
+    )
+
+    lidar_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='scan_bridge',
+        arguments=[
+            '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan'
+        ],
+        output='screen'
+    )
+
     return LaunchDescription([
+        gazebo,
         rsp_node,
         jsp_node,
-        gazebo,
-        spawn_robot
+        spawn_robot,
+        cmd_vel_bridge,
+        lidar_bridge
     ])

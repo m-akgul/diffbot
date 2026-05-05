@@ -7,10 +7,14 @@ setup(
     version='0.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
+        # ament index marker - required so ros2 can find the package
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
+        # package.xml
         ('share/' + package_name, ['package.xml']),
+        # Gazebo world file
         ('share/' + package_name + '/worlds', ['worlds/empty.sdf']),
+        # Launch file
         ('share/' + package_name + '/launch', ['launch/spawn_robot.launch.py']),
     ],
     install_requires=['setuptools'],

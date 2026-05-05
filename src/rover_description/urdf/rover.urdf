@@ -125,4 +125,74 @@
         <origin xyz="-0.2 0 0.05" />
     </joint>
 
+    <!-- Lidar Sensor -->
+    <link name="lidar_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.05" length="0.02" />
+            </geometry>
+            <material name="red" />
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="0.05" length="0.02" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001" />
+        </inertial>
+    </link>
+
+    <joint name="lidar_joint" type="fixed">
+        <parent link="chassis" />
+        <child link="lidar_link" />
+        <origin xyz="0.2 0 0.15" />
+    </joint>
+
+    <!-- DiffDrive Plugin -->
+    <gazebo>
+        <plugin name="gz::sim::systems::DiffDrive" filename="gz-sim-diff-drive-system">
+            <left_joint>left_wheel_joint</left_joint>
+            <right_joint>right_wheel_joint</right_joint>
+
+            <wheel_separation>0.32</wheel_separation>
+            <wheel_radius>0.07</wheel_radius>
+
+            <topic>/cmd_vel</topic>
+        </plugin>
+    </gazebo>
+
+    <!-- LiDAR Sensor configs -->
+    <gazebo reference="lidar_link">
+        <sensor name="lidar_sensor" type="gpu_lidar">
+            <pose>0 0 0 0 0 0</pose>
+            <always_on>1</always_on>
+            <visualize>true</visualize>
+            <update_rate>10</update_rate>
+            <topic>/scan</topic>
+
+            <lidar>
+                <scan>
+                    <horizontal>
+                        <samples>360</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-3.14</min_angle>
+                        <max_angle>3.14</max_angle>
+                    </horizontal>
+                </scan>
+
+                <range>
+                    <min>0.1</min>
+                    <max>10.0</max>
+                    <resolution>0.001</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.0</stddev>
+                </noise>
+            </lidar>
+        </sensor>
+    </gazebo>
 </robot>
