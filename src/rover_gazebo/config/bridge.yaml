@@ -1,0 +1,50 @@
+# ========================================================================
+# ros_gz_bridge configuration for Gazebo Harmonic <-> ROS2 Jazzy
+#
+# Topic direction:
+#   ROS_TO_GZ  - ROS2 publishes, Gazebo subscribes
+#   GZ_TO_ROS  - Gazebo publishes, ROS2 subscribes
+#   BIDIRECTIONAL - both directions
+# ========================================================================
+
+# Drive commands - teleop -> Gazebo diff drive plugin
+- ros_topic_name: "/cmd_vel"
+  gz_topic_name: "/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "gz.msgs.Twist"
+  direction: ROS_TO_GZ
+
+# LiDAR scan
+- ros_topic_name: "/scan"
+  gz_topic_name: "/scan"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+
+# Odometry - Gazebo diff drive → Nav / RViz
+- ros_topic_name: /odom
+  gz_topic_name: /odom
+  ros_type_name: nav_msgs/msg/Odometry
+  gz_type_name: gz.msgs.Odometry
+  direction: GZ_TO_ROS
+
+# TF (odom -> base_footprint) -> published by the diff drive plugin
+- ros_topic_name: "/tf"
+  gz_topic_name: "/tf"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
+  direction: GZ_TO_ROS
+
+# Simulation clock — MUST be bridged so all nodes respect sim time
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
+
+# Joint states - for robot_state_publisher to animate wheels in RViz
+- ros_topic_name: /joint_states
+  gz_topic_name: /joint_states
+  ros_type_name: sensor_msgs/msg/JointState
+  gz_type_name: gz.msgs.Model
+  direction: GZ_TO_ROS

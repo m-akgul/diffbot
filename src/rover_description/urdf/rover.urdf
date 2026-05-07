@@ -10,10 +10,10 @@
         <color rgba="1 0 0 1" />
     </material>
 
-    <!-- Base Link and Chassis -->
-    <link name="base_link" />
+    <!-- Base Link and base_link -->
+    <link name="base_footprint" />
 
-    <link name="chassis">
+    <link name="base_link">
         <visual>
             <origin xyz="0 0 0.07" />
             <geometry>
@@ -35,9 +35,9 @@
         </inertial>
     </link>
 
-    <joint name="base_to_chassis" type="fixed">
-        <parent link="base_link" />
-        <child link="chassis" />
+    <joint name="base_to_base_link" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
         <origin xyz=" -0.1 0 0" />
     </joint>
 
@@ -64,7 +64,7 @@
     </link>
 
     <joint name="left_wheel_joint" type="continuous">
-        <parent link="chassis" />
+        <parent link="base_link" />
         <child link="left_wheel" />
         <origin xyz="0.2 0.16 0.07" rpy="-1.57 0 0" />
         <axis xyz="0 0 1" />
@@ -93,7 +93,7 @@
     </link>
 
     <joint name="right_wheel_joint" type="continuous">
-        <parent link="chassis" />
+        <parent link="base_link" />
         <child link="right_wheel" />
         <origin xyz="0.2 -0.16 0.07" rpy="1.57 0 0" />
         <axis xyz="0 0 -1" />
@@ -120,7 +120,7 @@
     </link>
 
     <joint name="caster_joint" type="fixed">
-        <parent link="chassis" />
+        <parent link="base_link" />
         <child link="caster_wheel" />
         <origin xyz="-0.2 0 0.05" />
     </joint>
@@ -145,7 +145,7 @@
     </link>
 
     <joint name="lidar_joint" type="fixed">
-        <parent link="chassis" />
+        <parent link="base_link" />
         <child link="lidar_link" />
         <origin xyz="0.2 0 0.15" />
     </joint>
@@ -172,6 +172,8 @@
             <update_rate>10</update_rate>
             <topic>/scan</topic>
 
+            <gz_frame_id>lidar_link</gz_frame_id>
+
             <lidar>
                 <scan>
                     <horizontal>
@@ -181,11 +183,10 @@
                         <max_angle>3.14</max_angle>
                     </horizontal>
                 </scan>
-
                 <range>
                     <min>0.1</min>
                     <max>10.0</max>
-                    <resolution>0.001</resolution>
+                    <resolution>0.01</resolution>
                 </range>
                 <noise>
                     <type>gaussian</type>

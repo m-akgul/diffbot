@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess
+from launch.actions import ExecuteProcess, TimerAction
 from launch_ros.actions import Node
 from launch.substitutions import Command, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
@@ -21,7 +21,7 @@ def generate_launch_description():
     ])
     
     gazebo = ExecuteProcess(
-        cmd=['gz', 'sim', world_path],
+        cmd=['gz', 'sim', world_path, '-r'],
         output='screen'
     )
 
@@ -32,43 +32,42 @@ def generate_launch_description():
             'robot_description': ParameterValue(
                 Command(['xacro ', urdf_path]),
                 value_type=str
-            )
-        }]
+            ),
+            'use_sim_time': True
+        }],
+        output='screen'
     )
 
     jsp_node = Node(
         package='joint_state_publisher',
-        executable='joint_state_publisher'
+        executable='joint_state_publisher',
+        parameters=[{
+            'use_sim_time': True
+        }]
     )
 
     spawn_robot = Node(
-        package='ros_gz_sim',
-        executable='create',
-        name="spawn_robot",
-        arguments=[
-            '-name', 'rover_bot',
-            '-topic', 'robot_description'
-        ],
-        output='screen'
-    )
+                package='ros_gz_sim',
+                executable='create',
+                name='spawn_robot',
+                arguments=[
+                    '-name', 'rover_bot',
+                    '-topic', 'robot_description'
+                ],
+                output='screen',
+            )
 
-    cmd_vel_bridge = Node(
+    bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        name='cmd_vel_bridge',
-        arguments=[
-            '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist'
-        ],
-        output='screen'
-    )
-
-    lidar_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        name='scan_bridge',
-        arguments=[
-            '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan'
-        ],
+        parameters=[{
+            'config_file': PathJoinSubstitution([
+                FindPackageShare('rover_gazebo'),
+                'config',
+                'bridge.yaml'
+            ]),
+            'use_sim_time': True
+        }],
         output='screen'
     )
 
@@ -76,7 +75,6 @@ def generate_launch_description():
         gazebo,
         rsp_node,
         jsp_node,
-        spawn_robot,
-        cmd_vel_bridge,
-        lidar_bridge
+        bridge,
+        spawn_robot
     ])

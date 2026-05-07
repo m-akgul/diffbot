@@ -356,22 +356,33 @@ If a file is not declared in `setup.py`:
         ```xml
             <gazebo reference="lidar_link">
                 <sensor name="lidar_sensor" type="gpu_lidar">
+                    <pose>0 0 0 0 0 0</pose>
+                    <always_on>1</always_on>
+                    <visualize>true</visualize>
                     <update_rate>10</update_rate>
-                    <topic>scan</topic>
+                    <topic>/scan</topic>
+
+                    <gz_frame_id>lidar_link</gz_frame_id>
 
                     <lidar>
                         <scan>
                             <horizontal>
                                 <samples>360</samples>
+                                <resolution>1</resolution>
                                 <min_angle>-3.14</min_angle>
                                 <max_angle>3.14</max_angle>
                             </horizontal>
                         </scan>
-
                         <range>
                             <min>0.1</min>
                             <max>10.0</max>
+                            <resolution>0.01</resolution>
                         </range>
+                        <noise>
+                            <type>gaussian</type>
+                            <mean>0.0</mean>
+                            <stddev>0.0</stddev>
+                        </noise>
                     </lidar>
                 </sensor>
             </gazebo>
@@ -392,7 +403,8 @@ If a file is not declared in `setup.py`:
                 - `contact`
             - `update_rate` tag -> frequency in Hz
             - `topic` tag -> Gazebo transport topic name, what you bridge to ROS
-            - `ray` tag -> defines how the laser scans the environment
+            - `gz_frame_id` tag -> must match a specific URDF link, needed for RViZ LaserScan display
+            - `lidar` tag -> defines how the laser scans the environment
                 - `scan` -> `horizontal` or `vertical` tag
                     - `samples` tag -> number of rays per scan (360 = 1° resolution)
                     - `min_angle`, `max_angle` -> scan range in radians (-3.14, 3.14 = full 360° scan) (-1.57, 1.57 = front-facing LiDAR) (-0.5, 0.5 = narrow forward scan) (-2.35, 2.35 = 270° LiDAR)

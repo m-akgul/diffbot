@@ -16,6 +16,8 @@ setup(
         ('share/' + package_name + '/worlds', ['worlds/empty.sdf']),
         # Launch file
         ('share/' + package_name + '/launch', ['launch/spawn_robot.launch.py']),
+        # Bridge config file
+        ('share/' + package_name + '/config', ['config/bridge.yaml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
