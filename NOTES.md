@@ -164,6 +164,7 @@
         - `gz.msgs.Twist` -> Gazebo message type
 
     > [!IMPORTANT]
+    >
     > Bridge does **not create topics** it only connects them
     > Topic names must match exactly on both sides
     > Message types must be compatible
@@ -187,6 +188,7 @@ If a file is not declared in `setup.py`:
 - `ros2 launch` will fail
 
 > [!IMPORTANT]
+>
 > Modify `setup.py` whenever you add:
 >
 > - URDF files
@@ -247,10 +249,10 @@ If a file is not declared in `setup.py`:
         <?xml version="1.0"?>
         <robot name="rover_bot">
 
-            <!-- Base Link and Chassis-->
-            <link name="base_link"/>
+            <!-- Base and Chassis-->
+            <link name="base_footprint"/>
 
-            <link name="chassis">
+            <link name="base_link">
                 <visual>
                     <origin xyz="0 0 0.07" />
                     <geometry>
@@ -288,7 +290,7 @@ If a file is not declared in `setup.py`:
 
     ```xml
         <joint name="left_wheel_joint" type="continuous">
-            <parent link="chassis" />
+            <parent link="base_link" />
             <child link="left_wheel" />
             <origin xyz="0.2 0.16 0.07" rpy="-1.57 0 0" />
             <axis xyz="0 0 1" />
@@ -317,9 +319,9 @@ If a file is not declared in `setup.py`:
 
     Specify certain parameters that are used in gazebo simulation
 
-    Gazebo tag can be placed:
-    - globally under `robot` tag (applies to whole robot)
-    - inside a `link` (applies to a specific link)
+    Gazebo tag can be:
+    - global under `robot` tag (applies to whole robot)
+    - referenced to a `link` (applies to a specific link)
     1. Adding plugins
 
         ```xml
@@ -389,6 +391,7 @@ If a file is not declared in `setup.py`:
         ```
 
         [SDFormat Specification Doc](https://sdformat.org/spec/1.12/sensor/)
+
         [LiDAR SDF Doc for libsdformat 14](https://osrf-distributions.s3.amazonaws.com/sdformat/api/14.0.0/classsdf_1_1SDF__VERSION__NAMESPACE_1_1Lidar.html)
         - `reference` must match a specific URDF link
         - `sensor` tag
@@ -403,7 +406,7 @@ If a file is not declared in `setup.py`:
                 - `contact`
             - `update_rate` tag -> frequency in Hz
             - `topic` tag -> Gazebo transport topic name, what you bridge to ROS
-            - `gz_frame_id` tag -> must match a specific URDF link, needed for RViZ LaserScan display
+            - `gz_frame_id` tag -> must match a specific URDF link, needed for RViz LaserScan display
             - `lidar` tag -> defines how the laser scans the environment
                 - `scan` -> `horizontal` or `vertical` tag
                     - `samples` tag -> number of rays per scan (360 = 1° resolution)
@@ -416,6 +419,50 @@ If a file is not declared in `setup.py`:
 4. Transmission Tags
 
     Provides more detail about how the joints are driven by **physical actuators**
+
+---
+
+## Understanding LiDAR
+
+- `frame_id` -> tells ROS which coordinate frame produced the scan
+
+    > means: Every distance measurement is interpreted relative to lidar coordinate system and NOT the world frame.  
+    > -> This is why TF exists: without TF, sensor data is meaningless spatially, because TF lets ROS answer where lidar is in the robot and where robot is in the world.
+
+- `angle_min, angle_max` -> 3.14 in radians = 180 degrees, which means for (-3.14, 3.14) the sensor scans full 360 degrees.
+- angle_increment -> angular spacing between rays. For example, 0.0174 rad is equal to approximately 1 degree, so one measurement per degree.
+
+- `range_min, range_max` -> ignore closer objects than range_min, rays reach maximum at range_max. If nothing hit, ray returns inf or max range.
+
+- `ranges[ ]` -> each index, the angle of measurement $i$, corresponds to one laser ray angle.
+
+    $$
+        \theta_i = angle_{min} + i \cdot angle_{increment}
+    $$
+
+    For `angle_min = -3.14` and `angle_increment = 0.0174`
+
+    ```plain
+    ranges[0]   → -180°
+    ranges[90]  → -90°
+    ranges[180] →  0°
+    ranges[270] → +90°
+    ```
+
+LiDAR does NOT directly publish a map. It publishes raw **_polar_** range measurements.
+
+Each LiDAR measurement consists of:
+
+- angle: $\theta$
+- distance: $r$
+
+To visualize this in Cartesian space, RViz applies the transformation:
+
+$$
+x = r \cos(\theta), \quad y = r \sin(\theta)
+$$
+
+---
 
 ---
 
