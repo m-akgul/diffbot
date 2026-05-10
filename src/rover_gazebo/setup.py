@@ -1,3 +1,5 @@
+from glob import glob
+
 from setuptools import find_packages, setup
 
 package_name = 'rover_gazebo'
@@ -13,11 +15,11 @@ setup(
         # package.xml
         ('share/' + package_name, ['package.xml']),
         # Gazebo world file
-        ('share/' + package_name + '/worlds', ['worlds/empty.sdf']),
+        ('share/' + package_name + '/worlds', glob('worlds/*')),
         # Launch file
         ('share/' + package_name + '/launch', ['launch/spawn_robot.launch.py']),
-        # Bridge config file
-        ('share/' + package_name + '/config', ['config/bridge.yaml']),
+        # Config files
+        ('share/' + package_name + '/config', glob('config/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

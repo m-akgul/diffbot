@@ -10,7 +10,7 @@
         <color rgba="1 0 0 1" />
     </material>
 
-    <!-- Base Link and base_link -->
+    <!-- Base and Chassis -->
     <link name="base_footprint" />
 
     <link name="base_link">
