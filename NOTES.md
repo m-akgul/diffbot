@@ -310,13 +310,13 @@ If a file is not declared in `setup.py`:
         - `rpy` -> rotation around axes in radians
     - `axis` tag -> **_(optional: defaults to (1,0,0))_** axis of rotation or axis of translation for joints **_(fixed and floating do not use the axis field)_**
     - `dynamics` tag -> **_(optional)_**
-        - `damping` -> **_(defaults to 0)_** in newton-seconds per metre [$\frac{\mathrm{N \cdot s}}{\mathrm{m}}$] for prismatic, in [$\frac{\mathrm{N \cdot m \cdot s}}{\mathrm{rad}}$] for revolute
-        - `friction` -> **_(defaults to 0)_** in newtons [$\mathrm{N}$] for prismatic, in newton-metres [$\mathrm{N \cdot m}$]
+        - `damping` -> **_(defaults to 0)_** in newton-seconds per metre $[\frac{\mathrm{N \cdot s}}{\mathrm{m}}]$ for prismatic, in $[\frac{\mathrm{N \cdot m \cdot s}}{\mathrm{rad}}]$ for revolute
+        - `friction` -> **_(defaults to 0)_** in newtons $[\mathrm{N}]$ for prismatic, in newton-metres $[\mathrm{N \cdot m}]$
     - `limit` tag -> **_(required only for revolute and prismatic)_**
         - `lower` -> **_(optional: defaults to 0)_** in radians for revolute, in metres for prismatic
         - `upper` -> **_(optional: defaults to 0)_** in radians for revolute, in metres for prismatic
-        - `effort` -> **_(required)_** enforcing the maximum joint effort (|applied effort| < |effort|)
-        - `velocity` -> **_(required)_** enforcing the maximum joint velocity (in radians per second [$\frac{\mathrm{rad}}{\mathrm{s}}$] for revolute joints, in metres per second [$\frac{m}{\mathrm{s}}$] for prismatic joints)
+        - `effort` -> **_(required)_** enforcing the maximum joint effort $(\mathrm{\left|applied effort\right| < \left|effort\right|})$
+        - `velocity` -> **_(required)_** enforcing the maximum joint velocity (in radians per second $[\frac{\mathrm{rad}}{\mathrm{s}}]$ for revolute joints, in metres per second $[\frac{m}{\mathrm{s}}]$ for prismatic joints)
 
 3. Gazebo Tags
 
@@ -433,15 +433,14 @@ If a file is not declared in `setup.py`:
     > -> This is why TF exists: without TF, sensor data is meaningless spatially, because TF lets ROS answer where lidar is in the robot and where robot is in the world.
 
 - `angle_min, angle_max` -> 3.14 in radians = 180 degrees, which means for (-3.14, 3.14) the sensor scans full 360 degrees.
-- angle_increment -> angular spacing between rays. For example, 0.0174 rad is equal to approximately 1 degree, so one measurement per degree.
+
+- `angle_increment` -> angular spacing between rays. For example, 0.0174 rad is equal to approximately 1 degree, so one measurement per degree.
 
 - `range_min, range_max` -> ignore closer objects than range_min, rays reach maximum at range_max. If nothing hit, ray returns inf or max range.
 
 - `ranges[ ]` -> each index, the angle of measurement $i$, corresponds to one laser ray angle.
 
-    $$
-        \theta_i = angle_{min} + i \cdot angle_{increment}
-    $$
+    $\theta_i = angle_{min} + i \cdot angle_{increment}$
 
     For `angle_min = -3.14` and `angle_increment = 0.0174`
 
@@ -462,7 +461,7 @@ Each LiDAR measurement consists of:
 To visualize this in Cartesian space, RViz applies the transformation:
 
 $$
-x = r \cos(\theta), \quad y = r \sin(\theta)
+x = r \cdot \cos(\theta), \quad y = r \cdot \sin(\theta)
 $$
 
 ---
