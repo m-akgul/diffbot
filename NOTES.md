@@ -163,11 +163,10 @@
         - `geometry_msgs/msg/Twist` -> ROS message type
         - `gz.msgs.Twist` -> Gazebo message type
 
-    > [!IMPORTANT]
+    > **Note**
     >
-    > Bridge does **not create topics** it only connects them
-    > Topic names must match exactly on both sides
-    > Message types must be compatible
+    > Bridge does not create topics; it only connects existing ROS and Gazebo topics.  
+    > Ensure topic names and message types match on both sides.
 
     ```bash
         ros2 run teleop_twist_keyboard teleop_twist_keyboard
@@ -294,6 +293,7 @@ If a file is not declared in `setup.py`:
             <child link="left_wheel" />
             <origin xyz="0.2 0.16 0.07" rpy="-1.57 0 0" />
             <axis xyz="0 0 1" />
+            <dynamics damping="0.2" friction="0.1" />
         </joint>
     ```
 
@@ -309,11 +309,14 @@ If a file is not declared in `setup.py`:
         - `xyz` -> offsets in metres
         - `rpy` -> rotation around axes in radians
     - `axis` tag -> **_(optional: defaults to (1,0,0))_** axis of rotation or axis of translation for joints **_(fixed and floating do not use the axis field)_**
+    - `dynamics` tag -> **_(optional)_**
+        - `damping` -> **_(defaults to 0)_** in newton-seconds per metre [$\frac{\mathrm{N \cdot s}}{\mathrm{m}}$] for prismatic, in [$\frac{\mathrm{N \cdot m \cdot s}}{\mathrm{rad}}$] for revolute
+        - `friction` -> **_(defaults to 0)_** in newtons [$\mathrm{N}$] for prismatic, in newton-metres [$\mathrm{N \cdot m}$]
     - `limit` tag -> **_(required only for revolute and prismatic)_**
         - `lower` -> **_(optional: defaults to 0)_** in radians for revolute, in metres for prismatic
         - `upper` -> **_(optional: defaults to 0)_** in radians for revolute, in metres for prismatic
         - `effort` -> **_(required)_** enforcing the maximum joint effort (|applied effort| < |effort|)
-        - `velocity` -> **_(required)_** enforcing the maximum joint velocity (in radians per second [rad/s] for revolute joints, in metres per second [m/s] for prismatic joints)
+        - `velocity` -> **_(required)_** enforcing the maximum joint velocity (in radians per second [$\frac{\mathrm{rad}}{\mathrm{s}}$] for revolute joints, in metres per second [$\frac{m}{\mathrm{s}}$] for prismatic joints)
 
 3. Gazebo Tags
 
