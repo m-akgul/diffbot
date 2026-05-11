@@ -76,16 +76,6 @@ def generate_launch_description():
         output='screen'
     )
 
-    # ========== Joint State Publisher ==========
-    # Animates wheel joints
-    jsp_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        parameters=[{
-            'use_sim_time': True
-        }]
-    )
-
     # ========== Spawn Robot into Gazebo ==========
     # Reads /robot_description, converts URDF to SDF internally
     spawn_robot = Node(
@@ -125,7 +115,6 @@ def generate_launch_description():
         declare_rviz,
         gazebo,
         rsp_node,
-        jsp_node,
         spawn_robot,
         bridge,
         rviz

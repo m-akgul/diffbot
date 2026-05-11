@@ -21,7 +21,7 @@
   gz_type_name: "gz.msgs.LaserScan"
   direction: GZ_TO_ROS
 
-# Odometry - Gazebo diff drive → Nav / RViz
+# Odometry - Gazebo diff drive -> Nav / RViz
 - ros_topic_name: /odom
   gz_topic_name: /odom
   ros_type_name: nav_msgs/msg/Odometry
@@ -35,7 +35,7 @@
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
 
-# Simulation clock — MUST be bridged so all nodes respect sim time
+# Simulation clock - MUST be bridged so all nodes respect sim time
 - ros_topic_name: "/clock"
   gz_topic_name: "/clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
