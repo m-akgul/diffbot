@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
+from rclpy.duration import Duration
 
 class TeleopNode(Node):
     def __init__(self):
@@ -18,6 +19,9 @@ class TeleopNode(Node):
             0.1,
             self.publish_current_velocity
         )
+
+        self.command_timeout = Duration(seconds=0.5)
+        self.last_command_time = self.get_clock().now()
     
     def publish_velocity(self, linear_x, angular_z):
         msg = Twist()
@@ -26,6 +30,11 @@ class TeleopNode(Node):
         self.cmd_vel_publisher.publish(msg)
 
     def publish_current_velocity(self):
+        now = self.get_clock().now()
+        if now - self.last_command_time > self.command_timeout:
+            self.linear_velocity = 0.0
+            self.angular_velocity = 0.0
+            
         self.publish_velocity(
             self.linear_velocity,
             self.angular_velocity
@@ -34,6 +43,7 @@ class TeleopNode(Node):
     def set_velocity(self, linear_x, angular_z):
         self.linear_velocity = linear_x
         self.angular_velocity = angular_z
+        self.last_command_time = self.get_clock().now()
 
 # def main(args=None):
 #     rclpy.init(args=args)
