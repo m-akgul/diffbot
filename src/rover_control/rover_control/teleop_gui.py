@@ -2,6 +2,7 @@ import sys
 import threading
 import rclpy
 import math
+import signal
 
 from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QPainter, QColor, QPen, QBrush
@@ -18,7 +19,7 @@ from PyQt6.QtWidgets import (
     QComboBox
 )
 
-from teleop_node import TeleopNode
+from rover_control.teleop_node import TeleopNode
 
 class VirtualJoystick(QWidget):
     def __init__(self, parent = None):
@@ -193,6 +194,7 @@ class MainWindow(QMainWindow):
         self.mode_selector = QComboBox()
         self.mode_selector.addItems([
             'Buttons',
+            'Keyboard',
             'Joystick'
         ])
         self.mode_selector.currentTextChanged.connect(
@@ -228,6 +230,8 @@ class MainWindow(QMainWindow):
         self.raw_angular = 0.0
 
     def change_input_mode(self, mode):
+        self.ros_node.set_mode(mode)
+
         if mode == 'Buttons':
             self.show_button_controls()
             self.joystick_widget.hide()
@@ -235,6 +239,10 @@ class MainWindow(QMainWindow):
         elif mode == 'Joystick':
             self.hide_button_controls()
             self.joystick_widget.show()
+
+        elif mode == 'Keyboard':
+            self.hide_button_controls()
+            self.joystick_widget.hide()
 
     def show_button_controls(self):
         for i in range(self.button_layout.count()):
@@ -337,6 +345,8 @@ def main():
     ros_thread.start()
 
     app = QApplication(sys.argv)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    
     window = MainWindow(ros_node)
     window.show()
 

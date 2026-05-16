@@ -1,3 +1,5 @@
+from glob import glob
+
 from setuptools import find_packages, setup
 
 package_name = 'rover_control'
@@ -24,6 +26,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'teleop_gui = rover_control.teleop_gui:main',
+            'mux_node = rover_control.mux_node:main',
         ],
     },
 )
