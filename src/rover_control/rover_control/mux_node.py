@@ -6,14 +6,29 @@ from geometry_msgs.msg import Twist
 
 class CommandMux(Node):
     """
-    Priority-based command multiplexer for multiple input sources.
+    DEPRECATED: Use teleop_arbiter instead for safety-critical applications.
+
+    Basic priority-based command multiplexer for multiple input sources.
+
+    Limitations:
+    - No heartbeat mechanism to detect frozen GUI
+    - No watchdog safety stop
+    - No source preemption with lockout
+    - No deadman switch enforcement
+    - Racing conditions possible during mode switches
+    - No latency tracking or command rate validation
 
     Priority order (highest to lowest): Joystick > Keyboard > Buttons
     Uses timestamps to detect stale commands and only forwards active sources.
+
+    For safety-critical use, see: teleop_arbiter_node
     """
 
     def __init__(self):
         super().__init__('command_mux')
+        self.get_logger().warn(
+            'CommandMux is DEPRECATED. Use teleop_arbiter for production systems.'
+        )
 
         # === Subscribe to all input sources ===
         self.sub_buttons = self.create_subscription(

@@ -4,8 +4,10 @@ from .base_handler import BaseInputHandler
 
 
 class KeyboardInputHandler(BaseInputHandler):
-    def __init__(self, publisher, session_id: str):
-        super().__init__(publisher, session_id)
+    """Keyboard input handler with heartbeat for liveness detection."""
+
+    def __init__(self, publisher, heartbeat_publisher, ros_node, session_id: str):
+        super().__init__(publisher, heartbeat_publisher, ros_node, session_id)
         self.keys_pressed = set()
         self.max_linear_speed = 0.5
         self.max_angular_speed = 1.0
@@ -31,8 +33,12 @@ class KeyboardInputHandler(BaseInputHandler):
         self.max_angular_speed = angular
 
     def update(self):
+        # Update motion command and publish heartbeat
         if not self.is_active:
             return
+
+        # Publish heartbeat (liveness signal) every update
+        self.publish_heartbeat()
 
         # Map keyboard keys to raw commands
         linear = 0.0

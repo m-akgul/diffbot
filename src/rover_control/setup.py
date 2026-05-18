@@ -28,6 +28,7 @@ setup(
         'console_scripts': [
             'teleop_gui = rover_control.teleop_gui:main',
             'mux_node = rover_control.mux_node:main',
+            'teleop_arbiter = rover_control.teleop_arbiter:main',
         ],
     },
 )

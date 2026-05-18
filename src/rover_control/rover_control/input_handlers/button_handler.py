@@ -3,8 +3,10 @@ from .base_handler import BaseInputHandler
 
 
 class ButtonInputHandler(BaseInputHandler):
-    def __init__(self, publisher, session_id: str):
-        super().__init__(publisher, session_id)
+    """Button input handler with heartbeat for liveness detection."""
+
+    def __init__(self, publisher, heartbeat_publisher, ros_node, session_id: str):
+        super().__init__(publisher, heartbeat_publisher, ros_node, session_id)
         self.max_linear_speed = 0.5
         self.max_angular_speed = 1.0
         self.smoothed_linear = 0.0
@@ -26,8 +28,12 @@ class ButtonInputHandler(BaseInputHandler):
         self.clear_state()
 
     def update(self):
+        # Update motion command and publish heartbeat
         if not self.is_active:
             return
+
+        # Publish heartbeat (liveness signal) every update
+        self.publish_heartbeat()
 
         linear = self.current_linear
         angular = self.current_angular

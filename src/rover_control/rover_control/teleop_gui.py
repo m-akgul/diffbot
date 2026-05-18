@@ -24,6 +24,7 @@ from PyQt6.QtWidgets import (
     QComboBox
 )
 
+from std_msgs.msg import Header
 from rover_control.teleop_node import TeleopPublisher
 from rover_control.input_handlers.keyboard_handler import KeyboardInputHandler
 from rover_control.input_handlers.button_handler import ButtonInputHandler
@@ -133,10 +134,16 @@ class MainWindow(QMainWindow):
         self.keyboard_pub = TeleopPublisher('/cmd_vel_keyboard', f'keyboard_teleop_{safe_session_id}')
         self.joystick_pub = TeleopPublisher('/cmd_vel_joy', f'joystick_teleop_{safe_session_id}')
 
-        # Initialize input handlers (state and filtering logic)
-        self.keyboard_handler = KeyboardInputHandler(self.keyboard_pub.publisher, session_id)
-        self.button_handler = ButtonInputHandler(self.buttons_pub.publisher, session_id)
-        self.joystick_handler = JoystickInputHandler(self.joystick_pub.publisher, session_id)
+        # Heartbeat publishers (liveness signals)
+        self.buttons_hb_pub = self.buttons_pub.create_publisher(Header, '/heartbeat_buttons', 10)
+        self.keyboard_hb_pub = self.keyboard_pub.create_publisher(Header, '/heartbeat_keyboard', 10)
+        self.joystick_hb_pub = self.joystick_pub.create_publisher(Header, '/heartbeat_joy', 10)
+
+        # Initialize input handlers with both motion command and heartbeat publishers
+        # Pass the publisher node as ros_node for clock access
+        self.keyboard_handler = KeyboardInputHandler(self.keyboard_pub.publisher, self.keyboard_hb_pub, self.keyboard_pub, session_id)
+        self.button_handler = ButtonInputHandler(self.buttons_pub.publisher, self.buttons_hb_pub, self.buttons_pub, session_id)
+        self.joystick_handler = JoystickInputHandler(self.joystick_pub.publisher, self.joystick_hb_pub, self.joystick_pub, session_id)
 
         self.current_handler = None
         self.all_handlers = [self.keyboard_handler, self.button_handler, self.joystick_handler]
