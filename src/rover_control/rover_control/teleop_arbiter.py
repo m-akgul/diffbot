@@ -3,7 +3,6 @@ from rclpy.node import Node
 from rclpy.duration import Duration
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Header, Bool
-import threading
 
 
 class TeleopArbiter(Node):
@@ -29,7 +28,6 @@ class TeleopArbiter(Node):
     WATCHDOG_TIMEOUT = Duration(seconds=1.0)    # Emergency stop if no owner
     DEADMAN_MIN_RATE_HZ = 10.0                  # Minimum heartbeat Hz to stay alive
     OWNERSHIP_TIMEOUT = Duration(seconds=5.0)   # Auto-release ownership if stale
-    STATS_LOG_INTERVAL = 10.0                   # Log statistics every 10s
 
     def __init__(self):
         super().__init__('teleop_arbiter')
@@ -74,15 +72,8 @@ class TeleopArbiter(Node):
         self.owner_acquired_at = self.get_clock().now()
         self.watchdog_fired = False
 
-        # === Statistics ===
-        self.stats = {name: {'preemptions': 0, 'timeouts': 0} for name in self.sources}
-
         # === Main arbiter loop at 20Hz ===
         self.timer = self.create_timer(0.05, self._arbitrate)
-
-        # === Background statistics logging ===
-        self.stats_thread = threading.Thread(target=self._stats_logger_loop, daemon=True)
-        self.stats_thread.start()
 
     def _init_source(self, priority):
         # Initialize per-source state
@@ -92,8 +83,6 @@ class TeleopArbiter(Node):
             'last_cmd': Twist(),
             'last_cmd_time': self.get_clock().now(),
             'is_alive': False,
-            'heartbeat_count': 0,
-            'cmd_count': 0,
         }
 
     # === Heartbeat Callbacks (liveness signal) ===
@@ -110,7 +99,6 @@ class TeleopArbiter(Node):
         # Record heartbeat - source is ALIVE if heartbeat received regularly
         source = self.sources[source_name]
         source['last_heartbeat'] = self.get_clock().now()
-        source['heartbeat_count'] += 1
 
     # === Motion Command Callbacks (independent of liveness) ===
     def _on_cmd_buttons(self, msg: Twist):
@@ -127,7 +115,6 @@ class TeleopArbiter(Node):
         source = self.sources[source_name]
         source['last_cmd'] = msg
         source['last_cmd_time'] = self.get_clock().now()
-        source['cmd_count'] += 1
 
     # === Main Arbiter Logic (runs at 20Hz) ===
     def _arbitrate(self):
@@ -171,7 +158,6 @@ class TeleopArbiter(Node):
                             f'Preemption: "{self.owner}" (priority {self.sources[self.owner]["priority"]}) '
                             f'→ "{new_owner}" (priority {self.sources[new_owner]["priority"]})'
                         )
-                        self.stats[self.owner]['preemptions'] += 1
                     else:
                         self.get_logger().info(f'Ownership acquired: "{new_owner}"')
 
@@ -210,7 +196,6 @@ class TeleopArbiter(Node):
                     self.get_logger().info(
                         f'Preemption: "{old_owner}" -> "{new_owner}"'
                     )
-                    self.stats[old_owner]['preemptions'] += 1
                 elif new_owner:
                     self.get_logger().info(f'Ownership acquired: "{new_owner}"')
                 elif old_owner:
@@ -226,36 +211,6 @@ class TeleopArbiter(Node):
             self.pub_cmd_vel.publish(Twist())
             if self.watchdog_fired or not self.owner:
                 self.pub_safety_stop.publish(Bool(data=True))
-
-    # === Statistics Logging (background thread) ===
-    def _stats_logger_loop(self):
-        # Log statistics every STATS_LOG_INTERVAL seconds in background thread
-        while rclpy.ok():
-            threading.Event().wait(self.STATS_LOG_INTERVAL)
-
-            try:
-                now = self.get_clock().now()
-                self.get_logger().info('=== Teleop Arbiter Statistics ===')
-
-                for source_name, source in self.sources.items():
-                    hb_age = (now - source['last_heartbeat']).nanoseconds / 1e9
-                    cmd_age = (now - source['last_cmd_time']).nanoseconds / 1e9
-                    status = '✓ ALIVE' if source['is_alive'] else '✗ DEAD'
-                    owner_mark = ' [OWNER]' if source_name == self.owner else ''
-
-                    self.get_logger().info(
-                        f'{source_name:8} {status:10}{owner_mark:10} '
-                        f'hb_age={hb_age:.2f}s cmd_age={cmd_age:.2f}s '
-                        f'hb_cnt={source["heartbeat_count"]:5d} cmd_cnt={source["cmd_count"]:5d} '
-                        f'preempt={self.stats[source_name]["preemptions"]:3d} '
-                        f'timeout={self.stats[source_name]["timeouts"]:3d}'
-                    )
-
-                if self.watchdog_fired:
-                    self.get_logger().warn('⚠️  WATCHDOG ACTIVE - Safety stop enabled')
-
-            except Exception as e:
-                self.get_logger().error(f'Stats logging error: {e}')
 
 
 def main(args=None):

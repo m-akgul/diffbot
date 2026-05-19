@@ -6,7 +6,6 @@ def generate_launch_description():
     teleop_gui = Node(
         package='rover_control',
         executable='teleop_gui',
-        name='teleop_gui',
         output='screen'
     )
 

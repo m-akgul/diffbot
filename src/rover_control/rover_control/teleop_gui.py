@@ -10,7 +10,7 @@ import signal
 from rclpy.executors import MultiThreadedExecutor
 
 from PyQt6.QtCore import Qt, QPointF
-from PyQt6.QtGui import QPainter, QColor, QPen, QBrush
+from PyQt6.QtGui import QPainter, QColor, QPen, QBrush, QFont
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -21,7 +21,8 @@ from PyQt6.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QHBoxLayout,
-    QComboBox
+    QComboBox,
+    QGroupBox
 )
 
 from std_msgs.msg import Header
@@ -29,6 +30,7 @@ from rover_control.teleop_node import TeleopPublisher
 from rover_control.input_handlers.keyboard_handler import KeyboardInputHandler
 from rover_control.input_handlers.button_handler import ButtonInputHandler
 from rover_control.input_handlers.joystick_handler import JoystickInputHandler
+from rover_control.ros_telemetry import RosTelemetry
 
 
 class VirtualJoystick(QWidget):
@@ -126,7 +128,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.session_id = session_id
         self.setWindowTitle(f'Rover Control ({session_id[:8]})')
-        self.resize(400, 300)
+        self.resize(640, 440)
 
         # Initialize ROS2 publishers (one per input mode to avoid topic conflicts)
         safe_session_id = session_id.replace('-', '_')
@@ -162,7 +164,8 @@ class MainWindow(QMainWindow):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setFocus()
 
-        # === UI Layout: Speed Control Sliders ===
+        # === UI Layout: Header + Speed Control Sliders ===
+        header = self._make_header()
         slider_layout = QVBoxLayout()
 
         linear_row = QHBoxLayout()
@@ -177,11 +180,11 @@ class MainWindow(QMainWindow):
         slider_layout.addLayout(linear_row)
 
         angular_row = QHBoxLayout()
-        self.angular_label = QLabel('Angular Speed: 100%')
+        self.angular_label = QLabel('Angular Speed: 50%')
         self.angular_slider = QSlider(Qt.Orientation.Horizontal)
         self.angular_slider.setMinimum(0)
         self.angular_slider.setMaximum(200)
-        self.angular_slider.setValue(100)  # Initialize to max (100%)
+        self.angular_slider.setValue(100)
         self.angular_slider.valueChanged.connect(self.update_angular_speed)
 
         angular_row.addWidget(self.angular_label)
@@ -209,6 +212,14 @@ class MainWindow(QMainWindow):
         self.connect_motion_button(self.backward_left_button, -1.0, -1.0)
         self.connect_motion_button(self.backward_right_button, -1.0, 1.0)
 
+        # Ensure directional buttons have consistent smaller size and no focus
+        for btn in (self.forward_button, self.backward_button,
+                self.left_button, self.right_button,
+                self.forward_left_button, self.forward_right_button,
+                self.backward_left_button, self.backward_right_button):
+            btn.setMinimumSize(36, 36)
+            btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
         self.button_layout.addWidget(self.forward_left_button, 0, 0)
         self.button_layout.addWidget(self.forward_button, 0, 1)
         self.button_layout.addWidget(self.forward_right_button, 0, 2)
@@ -219,6 +230,7 @@ class MainWindow(QMainWindow):
         self.button_layout.addWidget(self.backward_right_button, 2, 2)
 
         main_layout = QVBoxLayout()
+        main_layout.addWidget(header)
 
         # === Input Mode Selector ===
         mode_label = QLabel('Input Mode')
@@ -234,16 +246,79 @@ class MainWindow(QMainWindow):
 
         self.joystick_widget = VirtualJoystick(joystick_handler=self.joystick_handler)
 
+        # Telemetry ROS helper (runs its own thread)
+        try:
+            self.ros_telemetry = RosTelemetry()
+            self.ros_telemetry.odom_received.connect(self._on_odom)
+            self.ros_telemetry.vel_received.connect(self._on_vel)
+        except Exception:
+            self.ros_telemetry = None
+
         main_layout.addWidget(mode_label)
         main_layout.addWidget(self.mode_selector)
 
-        main_layout.addLayout(slider_layout)
-        main_layout.addLayout(self.button_layout)
+        # Create grouped panels similar to controll.py: Drive + Speed Limits side-by-side
+        drive_box = QGroupBox('Drive')
+        drive_outer = QVBoxLayout(drive_box)
+        drive_outer.setSpacing(2)
 
-        main_layout.addWidget(self.joystick_widget)
+        # Put button grid into a container widget so existing grid layout can be reused
+        self.grid_widget = QWidget()
+        self.grid_widget.setLayout(self.button_layout)
+        drive_outer.addWidget(self.grid_widget)
+
+        # Joystick widget sits in the drive box; hidden by default
+        drive_outer.addWidget(self.joystick_widget)
         self.joystick_widget.hide()
 
+        self.hint = QLabel('Keyboard:  W A S D')
+        self.hint.setObjectName('hintLabel')
+        self.hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        drive_outer.addWidget(self.hint)
+
+        speed_box = QGroupBox('Speed Limits')
+        speed_box.setLayout(slider_layout)
+
+        mid = QHBoxLayout()
+        mid.setSpacing(12)
+        mid.addWidget(drive_box, stretch=1)
+        mid.addWidget(speed_box, stretch=1)
+
+        main_layout.addLayout(mid)
+
+        # Telemetry panel
+        telemetry_box = QGroupBox('Telemetry')
+        tel_grid = QGridLayout(telemetry_box)
+        tel_grid.setSpacing(8)
+        tel_grid.setColumnStretch(1, 1)
+        tel_grid.setColumnStretch(2, 1)
+        tel_grid.setColumnStretch(3, 1)
+
+        tel_grid.addWidget(QLabel('Commanded'), 0, 0)
+        self._lbl_cmd_lin = QLabel('Lin   0.000 m/s')
+        self._lbl_cmd_ang = QLabel('Ang   0.000 rad/s')
+        self._lbl_cmd_lin.setObjectName('telLabel')
+        self._lbl_cmd_ang.setObjectName('telLabel')
+        tel_grid.addWidget(self._lbl_cmd_lin, 0, 1)
+        tel_grid.addWidget(self._lbl_cmd_ang, 0, 2)
+
+        tel_grid.addWidget(QLabel('Odometry'), 1, 0)
+        self._lbl_odom_x  = QLabel('X   0.000 m')
+        self._lbl_odom_y  = QLabel('Y   0.000 m')
+        self._lbl_odom_vx = QLabel('Vx  0.000 m/s')
+        self._lbl_odom_x.setObjectName('telLabel')
+        self._lbl_odom_y.setObjectName('telLabel')
+        self._lbl_odom_vx.setObjectName('telLabel')
+        tel_grid.addWidget(self._lbl_odom_x,  1, 1)
+        tel_grid.addWidget(self._lbl_odom_y,  1, 2)
+        tel_grid.addWidget(self._lbl_odom_vx, 1, 3)
+
+        main_layout.addWidget(telemetry_box)
+
         central_widget.setLayout(main_layout)
+
+        # Apply styling similar to the legacy controller
+        self._apply_stylesheet()
 
         self.change_input_mode('Buttons')
 
@@ -253,6 +328,26 @@ class MainWindow(QMainWindow):
             lambda: self.button_handler.on_button_press(linear, angular)
         )
         button.released.connect(self.button_handler.on_button_release)
+
+    def _make_header(self):
+        from PyQt6.QtWidgets import QFrame
+        frame = QFrame()
+        frame.setObjectName('headerFrame')
+        lay = QHBoxLayout(frame)
+        lay.setContentsMargins(0, 0, 0, 8)
+
+        title = QLabel('ROVER CONTROL')
+        title.setObjectName('titleLabel')
+        title.setFont(QFont('Ubuntu', 16, QFont.Weight.Bold))
+
+        self._status_dot = QLabel('● CONNECTED')
+        self._status_dot.setObjectName('connLabel')
+        self._status_dot.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+        lay.addWidget(title)
+        lay.addStretch()
+        lay.addWidget(self._status_dot)
+        return frame
 
     # === Speed Control Sliders ===
     def update_linear_speed(self, value):
@@ -278,21 +373,150 @@ class MainWindow(QMainWindow):
             self.current_handler = self.button_handler
             self.show_button_controls()
             self.joystick_widget.hide()
+            self.grid_widget.show()
+            self.hint.hide()
 
         elif mode == 'Keyboard':
             self.current_handler = self.keyboard_handler
             self.hide_button_controls()
             self.joystick_widget.hide()
+            self.grid_widget.show()
+            self.hint.show()
 
         elif mode == 'Joystick':
             self.current_handler = self.joystick_handler
             self.hide_button_controls()
+            self.grid_widget.hide()
             self.joystick_widget.show()
+            self.hint.hide()
 
         self.current_handler.activate()
         self.activateWindow()
         self.raise_()
         self.setFocus()
+
+    # === Styling copied from controll.py ===
+    def _apply_stylesheet(self) -> None:
+        self.setStyleSheet("""
+            /* ── Base ── */
+            QMainWindow, QWidget {
+                background-color: #12131f;
+                color: #dde1f0;
+                font-family: 'Ubuntu', 'DejaVu Sans', sans-serif;
+                font-size: 13px;
+            }
+
+            /* ── Group boxes ── */
+            QGroupBox {
+                border: 1px solid #2e3058;
+                border-radius: 10px;
+                margin-top: 14px;
+                padding: 10px 8px 8px 8px;
+                font-weight: bold;
+                color: #8a93d4;
+                font-size: 12px;
+                letter-spacing: 1px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                left: 12px;
+                padding: 0 4px;
+                background-color: #12131f;
+            }
+
+            /* ── Direction buttons ── */
+            QPushButton {
+                background-color: #1e2038;
+                color: #c5cae9;
+                border: 1px solid #373a6a;
+                border-radius: 10px;
+                font-size: 22px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #2a2d50;
+                border-color: #5c6bc0;
+                color: #e8eaf6;
+            }
+            QPushButton:pressed, QPushButton:down {
+                background-color: #3949ab;
+                border-color: #9fa8da;
+                color: #ffffff;
+            }
+
+            /* ── Emergency stop ── */
+            QPushButton#stopBtn {
+                background-color: #3b0f0f;
+                color: #ff8a80;
+                border: 1px solid #c62828;
+                border-radius: 10px;
+                font-size: 13px;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+            QPushButton#stopBtn:hover {
+                background-color: #6d1515;
+                border-color: #ef5350;
+                color: #ffcdd2;
+            }
+            QPushButton#stopBtn:pressed {
+                background-color: #c62828;
+                color: #ffffff;
+            }
+
+            /* ── Sliders ── */
+            QSlider::groove:horizontal {
+                height: 5px;
+                background: #2e3058;
+                border-radius: 3px;
+            }
+            QSlider::sub-page:horizontal {
+                background: #3949ab;
+                border-radius: 3px;
+            }
+            QSlider::handle:horizontal {
+                width: 16px;
+                height: 16px;
+                background: #7986cb;
+                border-radius: 8px;
+                margin: -6px 0;
+            }
+            QSlider::handle:horizontal:hover {
+                background: #9fa8da;
+            }
+
+            /* ── Labels ── */
+            QLabel#titleLabel {
+                color: #e8eaf6;
+            }
+            QLabel#connLabel {
+                color: #69f0ae;
+                font-size: 12px;
+            }
+            QLabel#hintLabel {
+                color: #454878;
+                font-size: 11px;
+                padding-top: 6px;
+            }
+            QLabel#valLabel {
+                color: #7986cb;
+                font-weight: bold;
+                font-family: 'Ubuntu Mono', monospace;
+                min-width: 44px;
+            }
+            QLabel#telLabel {
+                color: #80cbc4;
+                font-family: 'Ubuntu Mono', monospace;
+                font-size: 12px;
+            }
+
+            /* ── Header separator ── */
+            QFrame#headerFrame {
+                border: none;
+                border-bottom: 1px solid #2e3058;
+            }
+        """)
 
     def show_button_controls(self):
         for i in range(self.button_layout.count()):
@@ -335,10 +559,34 @@ class MainWindow(QMainWindow):
         if self.current_handler:
             self.current_handler.update()
 
+    def _on_odom(self, x, y, vx, wz):
+        # Update telemetry labels from ROS callback (Qt signal thread)
+        try:
+            self._lbl_odom_x.setText(f'X   {x:.3f} m')
+            self._lbl_odom_y.setText(f'Y   {y:.3f} m')
+            self._lbl_odom_vx.setText(f'Vx  {vx:.3f} m/s')
+            # commanded labels will be updated by handlers; keep them in sync if needed
+        except Exception:
+            pass
+
+    def _on_vel(self, lin, ang):
+        # Update telemetry labels from ROS callback (Qt signal thread)
+        try:
+            self._lbl_cmd_lin.setText(f'Lin   {lin:.3f} m/s')
+            self._lbl_cmd_ang.setText(f'Ang   {ang:.3f} rad/s')
+        except Exception:
+            pass
+
     def closeEvent(self, event):
         # Stop all handlers when closing window
         for handler in self.all_handlers:
             handler.deactivate()
+        # shutdown telemetry helper if present
+        try:
+            if getattr(self, 'ros_telemetry', None):
+                self.ros_telemetry.shutdown()
+        except Exception:
+            pass
         super().closeEvent(event)
 
 
@@ -384,6 +632,12 @@ def main():
     window.buttons_pub.destroy_node()
     window.keyboard_pub.destroy_node()
     window.joystick_pub.destroy_node()
+
+    try:
+        if getattr(window, 'ros_telemetry', None):
+            window.ros_telemetry.shutdown()
+    except Exception:
+        pass
 
     rclpy.shutdown()
     sys.exit(exit_code)
