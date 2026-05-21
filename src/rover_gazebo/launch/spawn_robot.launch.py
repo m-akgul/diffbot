@@ -1,5 +1,6 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler
+from launch.event_handlers import OnProcessStart
 from launch_ros.actions import Node
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
@@ -13,7 +14,9 @@ def generate_launch_description():
     # ========== Package paths ==========
     pkg_gz_sim = FindPackageShare('rover_gazebo')
     pkg_robot = FindPackageShare('rover_description')
+    pkg_control = FindPackageShare('rover_control')
 
+    # ========== File paths ==========
     world_path = PathJoinSubstitution([
         pkg_gz_sim,
         'worlds',
@@ -43,6 +46,35 @@ def generate_launch_description():
         'rviz',
         default_value='true',
         description='Launch RViz2'
+    )
+
+    declare_slam = DeclareLaunchArgument(
+        'slam',
+        default_value='true',
+        description='Launch SLAM Toolbox'
+    )
+
+    declare_teleop = DeclareLaunchArgument(
+        'teleop',
+        default_value='true',
+        description='Launch Teleop'
+    )
+
+    # ========== Other Launch Files ==========
+    slam_launch = PythonLaunchDescriptionSource(
+        PathJoinSubstitution([
+            pkg_gz_sim,
+            'launch',
+            'slam.launch.py'
+        ])
+    )
+
+    teleop_launch = PythonLaunchDescriptionSource(
+        PathJoinSubstitution([
+            pkg_control,
+            'launch',
+            'teleop.launch.py'
+        ])
     )
     
     # ========== Gazebo Simulation ==========
@@ -89,6 +121,13 @@ def generate_launch_description():
         output='screen',
     )
 
+    delayed_spawn = RegisterEventHandler(
+        OnProcessStart(
+            target_action=rsp_node,
+            on_start=[spawn_robot]
+        )
+    )
+
     # ========== Bridges between ROS and Gazebo ==========
     bridge = Node(
         package='ros_gz_bridge',
@@ -111,11 +150,27 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
+    # ========== SLAM Toolbox ==========
+    slam = IncludeLaunchDescription(
+        slam_launch,
+        condition=IfCondition(LaunchConfiguration('slam'))
+    )
+
+    # ========== Teleop ==========
+    teleop = IncludeLaunchDescription(
+        teleop_launch,
+        condition=IfCondition(LaunchConfiguration('teleop'))
+    )
+
     return LaunchDescription([
         declare_rviz,
+        declare_slam,
+        declare_teleop,
+        teleop,
+        slam,
         gazebo,
         rsp_node,
-        spawn_robot,
+        delayed_spawn,
         bridge,
         rviz
     ])

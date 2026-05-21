@@ -16,8 +16,8 @@ setup(
         ('share/' + package_name, ['package.xml']),
         # Gazebo world file
         ('share/' + package_name + '/worlds', glob('worlds/*')),
-        # Launch file
-        ('share/' + package_name + '/launch', ['launch/spawn_robot.launch.py']),
+        # Launch files
+        ('share/' + package_name + '/launch', glob('launch/*')),
         # Config files
         ('share/' + package_name + '/config', glob('config/*')),
     ],
