@@ -1,0 +1,40 @@
+amcl:
+    ros__parameters:
+        use_sim_time: true
+        odom_frame_id: odom
+        base_frame_id: base_footprint
+        global_frame_id: map
+        scan_topic: /scan
+
+        # Particle filter (KLD) settings - tuned for lower CPU and faster convergence
+        min_particles: 300
+        max_particles: 1000
+        kld_err: 0.05
+        kld_z: 0.99
+
+        # Update/resample tuning
+        # Increase movement thresholds to avoid frequent resampling
+        update_min_d: 0.15
+        update_min_a: 0.15
+        resample_interval: 1
+
+        # Odometry/laser models
+        odom_model_type: diff
+        laser_model_type: likelihood_field
+
+        # Laser settings
+        laser_max_range: 10.0
+        laser_min_range: 0.1
+
+        # Sensor model tuning for faster convergence (lower variance)
+        laser_z_hit: 0.9
+        laser_z_rand: 0.1
+        laser_sigma_hit: 0.2
+
+        # Tolerances
+        transform_tolerance: 1.0
+
+        tf_broadcast: true
+
+        set_initial_pose: false
+        # NOTE: publish an initial pose to `/initialpose` (e.g. from RViz) to initialize
