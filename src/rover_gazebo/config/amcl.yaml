@@ -32,9 +32,14 @@ amcl:
         laser_sigma_hit: 0.2
 
         # Tolerances
-        transform_tolerance: 1.0
+        transform_tolerance: 0.2
 
         tf_broadcast: true
 
-        set_initial_pose: false
         # NOTE: publish an initial pose to `/initialpose` (e.g. from RViz) to initialize
+        set_initial_pose: true
+        initial_pose:
+            x: 0.0
+            y: 0.0
+            z: 0.0
+            yaw: 0.0

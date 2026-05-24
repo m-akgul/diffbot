@@ -2,6 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 
 from launch.substitutions import (
+    EnvironmentVariable,
     LaunchConfiguration,
     PathJoinSubstitution
 )
@@ -17,7 +18,9 @@ def generate_launch_description():
 
     # ========== File paths ==========
     map_file = PathJoinSubstitution([
-        '/home/merta/rover_ws/slam/',
+        EnvironmentVariable('HOME'),
+        'rover_ws',
+        'slam',
         'savemap',
         '21-05-2026.yaml'
     ])
@@ -36,6 +39,11 @@ def generate_launch_description():
         default_value='true'
     )
 
+    declare_map_file = DeclareLaunchArgument(
+        'map_file',
+        default_value=map_file
+    )
+
     # === MAP SERVER ===
     map_server = LifecycleNode(
         package='nav2_map_server',
@@ -43,7 +51,7 @@ def generate_launch_description():
         name='map_server',
         output='screen',
         parameters=[
-            {'yaml_filename': map_file},
+            {'yaml_filename': LaunchConfiguration('map_file')},
             {'use_sim_time': True}
         ],
         namespace=''
@@ -76,8 +84,8 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-
         declare_autostart,
+        declare_map_file,
 
         map_server,
         amcl,
