@@ -1,17 +1,3 @@
-# Copyright (c) 2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import os
 
 from ament_index_python.packages import get_package_share_directory
@@ -27,19 +13,11 @@ from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
-    # Get the launch directory
+
+    # ========== Package paths ==========
     bringup_dir = get_package_share_directory('rover_gazebo')
 
-    namespace = LaunchConfiguration('namespace')
-    use_sim_time = LaunchConfiguration('use_sim_time')
-    autostart = LaunchConfiguration('autostart')
-    params_file = LaunchConfiguration('params_file')
-    use_composition = LaunchConfiguration('use_composition')
-    container_name = LaunchConfiguration('container_name')
-    container_name_full = (namespace, '/', container_name)
-    use_respawn = LaunchConfiguration('use_respawn')
-    log_level = LaunchConfiguration('log_level')
-
+    # ========== Nodes to launch ==========
     lifecycle_nodes = [
         'amcl',
         'map_server',
@@ -53,6 +31,7 @@ def generate_launch_description():
         'waypoint_follower',
     ]
 
+    # ========== File paths ==========
     map_file = PathJoinSubstitution([
         EnvironmentVariable('HOME'),
         'rover_ws',
@@ -60,6 +39,18 @@ def generate_launch_description():
         'savemap',
         '21-05-2026.yaml'
     ])
+
+    # ========== Launch arguments ==========
+    namespace = LaunchConfiguration('namespace')
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    autostart = LaunchConfiguration('autostart')
+    params_file = LaunchConfiguration('params_file')
+    use_composition = LaunchConfiguration('use_composition')
+    container_name = LaunchConfiguration('container_name')
+    container_name_full = (namespace, '/', container_name)
+    use_respawn = LaunchConfiguration('use_respawn')
+    log_level = LaunchConfiguration('log_level')
+
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -108,18 +99,6 @@ def generate_launch_description():
         description='Automatically startup the nav2 stack',
     )
 
-    declare_use_composition_cmd = DeclareLaunchArgument(
-        'use_composition',
-        default_value='False',
-        description='Use composed bringup if True',
-    )
-
-    declare_container_name_cmd = DeclareLaunchArgument(
-        'container_name',
-        default_value='nav2_container',
-        description='the name of conatiner that nodes will load in if use composition',
-    )
-
     declare_use_respawn_cmd = DeclareLaunchArgument(
         'use_respawn',
         default_value='False',
@@ -130,8 +109,8 @@ def generate_launch_description():
         'log_level', default_value='info', description='log level'
     )
 
+    # ========== Nodes ==========
     load_nodes = GroupAction(
-        condition=IfCondition(PythonExpression(['not ', use_composition])),
         actions=[
             SetParameter('use_sim_time', use_sim_time),
             Node(
@@ -257,83 +236,6 @@ def generate_launch_description():
         ],
     )
 
-    load_composable_nodes = GroupAction(
-        condition=IfCondition(use_composition),
-        actions=[
-            SetParameter('use_sim_time', use_sim_time),
-            LoadComposableNodes(
-                target_container=container_name_full,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package='nav2_controller',
-                        plugin='nav2_controller::ControllerServer',
-                        name='controller_server',
-                        parameters=[configured_params],
-                        remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
-                    ),
-                    ComposableNode(
-                        package='nav2_smoother',
-                        plugin='nav2_smoother::SmootherServer',
-                        name='smoother_server',
-                        parameters=[configured_params],
-                        remappings=remappings,
-                    ),
-                    ComposableNode(
-                        package='nav2_planner',
-                        plugin='nav2_planner::PlannerServer',
-                        name='planner_server',
-                        parameters=[configured_params],
-                        remappings=remappings,
-                    ),
-                    ComposableNode(
-                        package='nav2_behaviors',
-                        plugin='behavior_server::BehaviorServer',
-                        name='behavior_server',
-                        parameters=[configured_params],
-                        remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
-                    ),
-                    ComposableNode(
-                        package='nav2_bt_navigator',
-                        plugin='nav2_bt_navigator::BtNavigator',
-                        name='bt_navigator',
-                        parameters=[configured_params],
-                        remappings=remappings,
-                    ),
-                    ComposableNode(
-                        package='nav2_waypoint_follower',
-                        plugin='nav2_waypoint_follower::WaypointFollower',
-                        name='waypoint_follower',
-                        parameters=[configured_params],
-                        remappings=remappings,
-                    ),
-                    ComposableNode(
-                        package='nav2_velocity_smoother',
-                        plugin='nav2_velocity_smoother::VelocitySmoother',
-                        name='velocity_smoother',
-                        parameters=[configured_params],
-                        remappings=remappings
-                        + [('cmd_vel', 'cmd_vel_nav')],
-                    ),
-                    ComposableNode(
-                        package='nav2_collision_monitor',
-                        plugin='nav2_collision_monitor::CollisionMonitor',
-                        name='collision_monitor',
-                        parameters=[configured_params],
-                        remappings=remappings,
-                    ),
-                    ComposableNode(
-                        package='nav2_lifecycle_manager',
-                        plugin='nav2_lifecycle_manager::LifecycleManager',
-                        name='lifecycle_manager_navigation',
-                        parameters=[
-                            {'autostart': autostart, 'node_names': lifecycle_nodes}
-                        ],
-                    ),
-                ],
-            ),
-        ],
-    )
-
     # Create the launch description and populate
     ld = LaunchDescription()
 
@@ -345,160 +247,9 @@ def generate_launch_description():
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_params_file_cmd)
     ld.add_action(declare_autostart_cmd)
-    ld.add_action(declare_use_composition_cmd)
-    ld.add_action(declare_container_name_cmd)
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
     # Add the actions to launch all of the navigation nodes
     ld.add_action(load_nodes)
-    ld.add_action(load_composable_nodes)
 
     return ld
-
-
-
-
-
-
-
-
-
-
-
-
-
-# from launch import LaunchDescription
-# from launch_ros.actions import Node
-
-# from launch.substitutions import EnvironmentVariable, PathJoinSubstitution
-# from launch_ros.substitutions import FindPackageShare
-
-# def generate_launch_description():
-
-#     # ========== Package paths ==========
-#     pkg_share = FindPackageShare('rover_gazebo')
-
-#     # ========== File paths ==========
-#     nav2_config = PathJoinSubstitution([
-#         pkg_share,
-#         'config',
-#         'nav2.yaml'
-#     ])
-
-#     map_file = PathJoinSubstitution([
-#         EnvironmentVariable('HOME'),
-#         'rover_ws',
-#         'slam',
-#         'savemap',
-#         '21-05-2026.yaml'
-#     ])
-
-#     # ========== Remappings ==========
-#     remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
-
-#     # ========== Nodes ==========
-#     nav2_map_server = Node(
-#         package='nav2_map_server',
-#         executable='map_server',
-#         name='map_server',
-#         output='screen',
-#         parameters=[
-#             nav2_config,
-#             {'yaml_filename': map_file}
-#         ]
-#     )
-
-#     nav2_amcl = Node(
-#         package='nav2_amcl',
-#         executable='amcl',
-#         name='amcl',
-#         output='screen',
-#         parameters=[nav2_config]
-#     )
-
-#     nav2_controller = Node(
-#         package='nav2_controller',
-#         executable='controller_server',
-#         name='controller_server',
-#         output='screen',
-#         parameters=[nav2_config],
-#         remappings=remappings + [
-#             ('cmd_vel', 'cmd_vel_nav')
-#         ]
-#     )
-
-#     nav2_planner = Node(
-#         package='nav2_planner',
-#         executable='planner_server',
-#         name='planner_server',
-#         output='screen',
-#         parameters=[nav2_config]
-#     )
-
-#     nav2_behaviors = Node(
-#         package='nav2_behaviors',
-#         executable='behavior_server',
-#         name='behavior_server',
-#         output='screen',
-#         parameters=[nav2_config]
-#     )
-
-#     nav2_bt_navigator = Node(
-#         package='nav2_bt_navigator',
-#         executable='bt_navigator',
-#         name='bt_navigator',
-#         output='screen',
-#         parameters=[nav2_config]
-#     )
-
-#     nav2_waypoint_follower = Node(
-#         package='nav2_waypoint_follower',
-#         executable='waypoint_follower',
-#         name='waypoint_follower',
-#         output='screen',
-#         parameters=[nav2_config]
-#     )
-
-#     nav2_velocity_smoother = Node(
-#         package='nav2_velocity_smoother',
-#         executable='velocity_smoother',
-#         name='velocity_smoother',
-#         output='screen',
-#         parameters=[nav2_config],
-#         remappings=remappings + [
-#             ('cmd_vel', 'cmd_vel_nav')
-#         ]
-#     )
-
-#     # ========== Lifecycle Manager ==========
-#     nav2_lifecycle_manager = Node(
-#         package='nav2_lifecycle_manager',
-#         executable='lifecycle_manager',
-#         output='screen',
-#         parameters=[{
-#             'use_sim_time': True,
-#             'autostart': True,
-#             'node_names': [
-#                 'map_server',
-#                 'amcl',
-#                 'controller_server',
-#                 'planner_server',
-#                 'behavior_server',
-#                 'bt_navigator',
-#                 'waypoint_follower',
-#                 'velocity_smoother'
-#             ]
-#         }]
-#     )
-
-#     return LaunchDescription([
-#         nav2_controller,
-#         nav2_planner,
-#         nav2_behaviors,
-#         nav2_bt_navigator,
-#         nav2_waypoint_follower,
-#         nav2_map_server,
-#         nav2_amcl,
-#         nav2_velocity_smoother,
-#         nav2_lifecycle_manager
-#     ])
