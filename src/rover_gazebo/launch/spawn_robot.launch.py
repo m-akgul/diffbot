@@ -50,7 +50,7 @@ def generate_launch_description():
 
     declare_slam = DeclareLaunchArgument(
         'slam',
-        default_value='true',
+        default_value='false',
         description='Launch SLAM Toolbox'
     )
 

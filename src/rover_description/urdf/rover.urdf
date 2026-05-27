@@ -80,8 +80,8 @@
     </joint>
 
     <gazebo reference="left_wheel">
-        <mu1>1.0</mu1>
-        <mu2>0.2</mu2>
+        <mu1>2.0</mu1>
+        <mu2>2.0</mu2>
     </gazebo>
 
     <!-- Right Wheel -->
@@ -115,8 +115,8 @@
     </joint>
 
     <gazebo reference="right_wheel">
-        <mu1>1.0</mu1>
-        <mu2>0.2</mu2>
+        <mu1>2.0</mu1>
+        <mu2>2.0</mu2>
     </gazebo>
 
     <!-- Caster Wheel -->
