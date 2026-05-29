@@ -4,11 +4,10 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
-from launch.conditions import IfCondition
-from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
-from launch_ros.actions import LoadComposableNodes, SetParameter
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
+from launch_ros.actions import SetParameter
 from launch_ros.actions import Node
-from launch_ros.descriptions import ComposableNode, ParameterFile
+from launch_ros.descriptions import ParameterFile
 from nav2_common.launch import RewrittenYaml
 
 
@@ -45,9 +44,6 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
     params_file = LaunchConfiguration('params_file')
-    use_composition = LaunchConfiguration('use_composition')
-    container_name = LaunchConfiguration('container_name')
-    container_name_full = (namespace, '/', container_name)
     use_respawn = LaunchConfiguration('use_respawn')
     log_level = LaunchConfiguration('log_level')
 
@@ -211,8 +207,7 @@ def generate_launch_description():
                 respawn_delay=2.0,
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings
-                + [('cmd_vel', 'cmd_vel_nav')],
+                remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
             ),
             Node(
                 package='nav2_collision_monitor',
