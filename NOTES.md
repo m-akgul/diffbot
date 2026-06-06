@@ -33,9 +33,9 @@
 
         ```python
             rviz_config = PathJoinSubstitution([
-                FindPackageShare('rover_description'),
+                FindPackageShare('diffbot_description'),
                 'rviz',
-                'rover.rviz'
+                'diffbot.rviz'
             ])
 
             rviz_node = Node(
@@ -58,16 +58,16 @@
 
         ```python
             urdf_path = PathJoinSubstitution([
-                FindPackageShare('rover_description'),
+                FindPackageShare('diffbot_description'),
                 'urdf',
-                'rover.urdf'
+                'diffbot.urdf'
             ])
         ```
 
         - `FindPackageShare` -> finds installed package location
         - `urdf` -> folder
-        - `rover.urdf` -> file
-          Result: `/path/to/install/rover_description/urdf/rover.urdf`
+        - `diffbot.urdf` -> file
+          Result: `/path/to/install/diffbot_description/urdf/diffbot.urdf`
 
     3. Add Parameter to a Node (rsp_node)
 
@@ -92,7 +92,7 @@
     `ros2 launch <package_name> <launch_file_name> <launch_arguments>:=<value>`
 
     For this project:
-    `ros2 launch rover_description display.launch.py`
+    `ros2 launch diffbot_description display.launch.py`
 
 ---
 
@@ -104,7 +104,7 @@
         from launch.actions import ExecuteProcess
 
         world_path = PathJoinSubstitution([
-            FindPackageShare('rover_gazebo'),
+            FindPackageShare('diffbot_gazebo'),
             'worlds',
             'empty.sdf'
         ])
@@ -128,7 +128,7 @@
             package='ros_gz_sim',
             executable='create',
             arguments=[
-                '-name', 'rover_bot',
+                '-name', 'diffbot_bot',
                 '-topic', 'robot_description'
             ],
             output='screen'
@@ -141,7 +141,7 @@
         - `-name` -> name of robot inside Gazebo
         - `-topic` -> where robot model is
 
-    The code above equals to `ros2 run ros_gz_sim create -name rover_bot -topic robot_description`
+    The code above equals to `ros2 run ros_gz_sim create -name diffbot_bot -topic robot_description`
 
 3. Move robot in Gazebo (Using Gazebo Bridge)
 
@@ -182,7 +182,7 @@
 
 If a file is not declared in `setup.py`:
 
-- ROS will NOT copy it into the install space(~/rover_ws/install/rover_description/)
+- ROS will NOT copy it into the install space(~/diffbot_ws/install/diffbot_description/)
 - ROS will NOT find it
 - `ros2 launch` will fail
 
@@ -198,7 +198,7 @@ If a file is not declared in `setup.py`:
 
 1. Open `setup.py`
 
-    `nano ~/rover_ws/src/rover_description/setup.py`
+    `nano ~/diffbot_ws/src/diffbot_description/setup.py`
 
 2. Understanding `data_files=[...]`
 
@@ -224,17 +224,17 @@ If a file is not declared in `setup.py`:
 
         Add this to `data_files`:
 
-        `('share/rover_description/urdf', ['urdf/rover.urdf']),`
-        - `share/rover_description/urdf` -> destination
-        - `urdf/rover.urdf` -> source file
+        `('share/diffbot_description/urdf', ['urdf/diffbot.urdf']),`
+        - `share/diffbot_description/urdf` -> destination
+        - `urdf/diffbot.urdf` -> source file
 
     2. Install launch file
 
         Add this to `data_files`:
 
-        `('share/rover_description/launch', ['launch/display.launch.py']),`
+        `('share/diffbot_description/launch', ['launch/display.launch.py']),`
 
-        ROS looks in `install/rover_description/share/rover_description/launch/` when you run `ros2 launch ...`
+        ROS looks in `install/diffbot_description/share/diffbot_description/launch/` when you run `ros2 launch ...`
 
         If file is not there, launch fails
 
@@ -246,7 +246,7 @@ If a file is not declared in `setup.py`:
 
     ```xml
         <?xml version="1.0"?>
-        <robot name="rover_bot">
+        <robot name="diffbot_bot">
 
             <!-- Base and Chassis-->
             <link name="base_footprint"/>

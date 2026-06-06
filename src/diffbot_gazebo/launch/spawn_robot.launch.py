@@ -12,9 +12,9 @@ from launch.conditions import IfCondition
 def generate_launch_description():
 
     # ========== Package paths ==========
-    pkg_gz_sim = FindPackageShare('rover_gazebo')
-    pkg_robot = FindPackageShare('rover_description')
-    pkg_control = FindPackageShare('rover_control')
+    pkg_gz_sim = FindPackageShare('diffbot_gazebo')
+    pkg_robot = FindPackageShare('diffbot_description')
+    pkg_control = FindPackageShare('diffbot_control')
 
     # ========== File paths ==========
     world_path = PathJoinSubstitution([
@@ -26,13 +26,13 @@ def generate_launch_description():
     urdf_path = PathJoinSubstitution([
         pkg_robot,
         'urdf',
-        'rover.urdf'
+        'diffbot.urdf'
     ])
 
     rviz_conf = PathJoinSubstitution([
         pkg_gz_sim,
         'config',
-        'rover.rviz'
+        'diffbot.rviz'
     ])
 
     bridge_conf = PathJoinSubstitution([
@@ -115,7 +115,7 @@ def generate_launch_description():
         executable='create',
         name='spawn_robot',
         arguments=[
-            '-name', 'rover_bot',
+            '-name', 'diffbot_bot',
             '-topic', 'robot_description'
         ],
         output='screen',

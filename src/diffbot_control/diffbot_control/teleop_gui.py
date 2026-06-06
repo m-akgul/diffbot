@@ -26,11 +26,11 @@ from PyQt6.QtWidgets import (
 )
 
 from std_msgs.msg import Header
-from rover_control.teleop_node import TeleopPublisher
-from rover_control.input_handlers.keyboard_handler import KeyboardInputHandler
-from rover_control.input_handlers.button_handler import ButtonInputHandler
-from rover_control.input_handlers.joystick_handler import JoystickInputHandler
-from rover_control.ros_telemetry import RosTelemetry
+from diffbot_control.teleop_node import TeleopPublisher
+from diffbot_control.input_handlers.keyboard_handler import KeyboardInputHandler
+from diffbot_control.input_handlers.button_handler import ButtonInputHandler
+from diffbot_control.input_handlers.joystick_handler import JoystickInputHandler
+from diffbot_control.ros_telemetry import RosTelemetry
 
 
 class VirtualJoystick(QWidget):
@@ -119,7 +119,7 @@ class VirtualJoystick(QWidget):
 
 class MainWindow(QMainWindow):
     """
-    Main GUI window for rover teleoperation with three input modes.
+    Main GUI window for diffbot teleoperation with three input modes.
 
     Manages mode switching, speed control, and routes commands to the active handler.
     """
@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
     def __init__(self, session_id: str):
         super().__init__()
         self.session_id = session_id
-        self.setWindowTitle(f'Rover Control ({session_id[:8]})')
+        self.setWindowTitle(f'diffbot Control ({session_id[:8]})')
         self.resize(640, 440)
 
         # Initialize ROS2 publishers (one per input mode to avoid topic conflicts)
@@ -336,7 +336,7 @@ class MainWindow(QMainWindow):
         lay = QHBoxLayout(frame)
         lay.setContentsMargins(0, 0, 0, 8)
 
-        title = QLabel('ROVER CONTROL')
+        title = QLabel('diffbot CONTROL')
         title.setObjectName('titleLabel')
         title.setFont(QFont('Ubuntu', 16, QFont.Weight.Bold))
 

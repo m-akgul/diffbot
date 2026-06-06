@@ -14,7 +14,7 @@ from nav2_common.launch import RewrittenYaml
 def generate_launch_description():
 
     # ========== Package paths ==========
-    bringup_dir = get_package_share_directory('rover_gazebo')
+    bringup_dir = get_package_share_directory('diffbot_gazebo')
 
     # ========== Nodes to launch ==========
     lifecycle_nodes = [
@@ -33,7 +33,7 @@ def generate_launch_description():
     # ========== File paths ==========
     map_file = PathJoinSubstitution([
         EnvironmentVariable('HOME'),
-        'rover_ws',
+        'diffbot_ws',
         'slam',
         'savemap',
         '21-05-2026.yaml'

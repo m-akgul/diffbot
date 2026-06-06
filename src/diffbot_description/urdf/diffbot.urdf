@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="rover_bot">
+<robot name="diffbot_bot">
 
     <!-- Colors -->
     <material name="grey">

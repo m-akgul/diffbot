@@ -16,7 +16,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
 
     # ========== Package paths ==========
-    pkg_gz_sim = FindPackageShare('rover_gazebo')
+    pkg_gz_sim = FindPackageShare('diffbot_gazebo')
 
     # ========== File paths ==========
     slam_conf = PathJoinSubstitution([

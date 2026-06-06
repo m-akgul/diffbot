@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>rover_description</name>
+  <name>diffbot_gazebo</name>
   <version>0.0.0</version>
-  <description>Robot description package for rover_bot</description>
+  <description>Robot simulation package for diffbot_bot</description>
   <maintainer email="81179831+m-akgul@users.noreply.github.com">merta</maintainer>
   <license>Apache-2.0</license>
 

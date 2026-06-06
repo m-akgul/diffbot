@@ -6,15 +6,15 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
 
     urdf_path = PathJoinSubstitution([
-        FindPackageShare('rover_description'),
+        FindPackageShare('diffbot_description'),
         'urdf',
-        'rover.urdf'
+        'diffbot.urdf'
     ])
 
     rviz_config = PathJoinSubstitution([
-        FindPackageShare('rover_description'),
+        FindPackageShare('diffbot_description'),
         'rviz',
-        'rover.rviz'
+        'diffbot.rviz'
     ])
 
     rsp_node = Node(

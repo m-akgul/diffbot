@@ -2,12 +2,12 @@
 """
 Not used in this project, but kept for reference
 
-rover_control/control_gui.py
+diffbot_control/control_gui.py
 ────────────────────────────────────────────────────────────────────────────
 PyQt6 robot control GUI for ROS2 Jazzy + Gazebo Harmonic.
 
 Run:
-    ros2 run rover_control control_gui
+    ros2 run diffbot_control control_gui
 
 Controls:
     Mouse  — click and hold directional buttons
@@ -50,7 +50,7 @@ class RosNode(QObject):
 
     def __init__(self) -> None:
         super().__init__()
-        self._node = Node('rover_control_gui')
+        self._node = Node('diffbot_control_gui')
         self._executor = SingleThreadedExecutor()
         self._executor.add_node(self._node)
 
@@ -149,7 +149,7 @@ class ControlWindow(QMainWindow):
         self._build_ui()
         self._apply_stylesheet()
 
-        self.setWindowTitle('Rover Control')
+        self.setWindowTitle('diffbot Control')
         self.setMinimumSize(700, 460)
         # Main window must keep focus so key events are delivered here
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -181,7 +181,7 @@ class ControlWindow(QMainWindow):
         lay = QHBoxLayout(frame)
         lay.setContentsMargins(0, 0, 0, 8)
 
-        title = QLabel('🤖  ROVER CONTROL')
+        title = QLabel('🤖  diffbot CONTROL')
         title.setObjectName('titleLabel')
         title.setFont(QFont('Ubuntu', 16, QFont.Weight.Bold))
 
@@ -568,7 +568,7 @@ class ControlWindow(QMainWindow):
 def main() -> None:
     rclpy.init()
     app = QApplication(sys.argv)
-    app.setApplicationName('Rover Control')
+    app.setApplicationName('diffbot Control')
 
     ros = RosNode()
     window = ControlWindow(ros)

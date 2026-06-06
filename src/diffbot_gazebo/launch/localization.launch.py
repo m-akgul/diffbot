@@ -14,12 +14,12 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
 
     # ========== Package paths ==========
-    pkg_share = FindPackageShare('rover_gazebo')
+    pkg_share = FindPackageShare('diffbot_gazebo')
 
     # ========== File paths ==========
     map_file = PathJoinSubstitution([
         EnvironmentVariable('HOME'),
-        'rover_ws',
+        'diffbot_ws',
         'slam',
         'savemap',
         '21-05-2026.yaml'

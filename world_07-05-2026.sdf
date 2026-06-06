@@ -71,7 +71,7 @@
     </model>
     <include>
       <uri>file://<urdf-string></uri>
-      <name>rover_bot</name>
+      <name>diffbot_bot</name>
       <pose>-5.8249750283369166e-11 6.6355759102992833e-21 5.5979500285699498e-06 8.1236425090860203e-21 -1.8700479404432453e-05 4.2807767003656832e-20</pose>
     </include>
     <light name='sun' type='directional'>

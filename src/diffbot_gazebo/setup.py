@@ -2,7 +2,7 @@ from glob import glob
 
 from setuptools import find_packages, setup
 
-package_name = 'rover_gazebo'
+package_name = 'diffbot_gazebo'
 
 setup(
     name=package_name,
@@ -25,7 +25,7 @@ setup(
     zip_safe=True,
     maintainer='merta',
     maintainer_email='81179831+m-akgul@users.noreply.github.com',
-    description='Robot simulation package for rover_bot',
+    description='Robot simulation package for diffbot_bot',
     license='Apache-2.0',
     extras_require={
         'test': [

@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'rover_control'
+package_name = 'diffbot_description'
 
 setup(
     name=package_name,
@@ -10,13 +10,15 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/launch', ['launch/teleop.launch.py']),
+        ('share/' + package_name + '/urdf', ['urdf/diffbot.urdf']),
+        ('share/' + package_name + '/launch', ['launch/display.launch.py']),
+        ('share/' + package_name + '/rviz', ['rviz/diffbot.rviz']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='merta',
     maintainer_email='81179831+m-akgul@users.noreply.github.com',
-    description='Control interfaces for rover robot',
+    description='Robot description package for diffbot_bot',
     license='Apache-2.0',
     extras_require={
         'test': [
@@ -25,9 +27,6 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'teleop_gui = rover_control.teleop_gui:main',
-            'mux_node = rover_control.mux_node:main',
-            'teleop_arbiter = rover_control.teleop_arbiter:main',
         ],
     },
 )

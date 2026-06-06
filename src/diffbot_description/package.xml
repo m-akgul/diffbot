@@ -1,14 +1,11 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>rover_control</name>
+  <name>diffbot_description</name>
   <version>0.0.0</version>
-  <description>Control interfaces for rover robot</description>
+  <description>Robot description package for diffbot_bot</description>
   <maintainer email="81179831+m-akgul@users.noreply.github.com">merta</maintainer>
   <license>Apache-2.0</license>
-
-  <depend>rclpy</depend>
-  <depend>geometry_msgs</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
