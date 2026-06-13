@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<robot name="diffbot"
+       xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="constants.xacro"/>
+    <xacro:include filename="materials.xacro"/>
+
+    <xacro:include filename="base.xacro"/>
+    <xacro:include filename="wheels.xacro"/>
+    <xacro:include filename="sensors.xacro"/>
+
+    <xacro:include filename="gazebo.xacro"/>
+
+</robot>

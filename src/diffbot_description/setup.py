@@ -1,3 +1,5 @@
+from glob import glob
+
 from setuptools import find_packages, setup
 
 package_name = 'diffbot_description'
@@ -10,7 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/urdf', ['urdf/diffbot.urdf']),
+        ('share/' + package_name + '/urdf', glob('urdf/*')),
         ('share/' + package_name + '/launch', ['launch/display.launch.py']),
         ('share/' + package_name + '/rviz', ['rviz/diffbot.rviz']),
     ],
@@ -18,7 +20,7 @@ setup(
     zip_safe=True,
     maintainer='merta',
     maintainer_email='81179831+m-akgul@users.noreply.github.com',
-    description='Robot description package for diffbot_bot',
+    description='Robot description package for diffbot',
     license='Apache-2.0',
     extras_require={
         'test': [

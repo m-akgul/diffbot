@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Wheel friction -->
+    <gazebo reference="left_wheel">
+        <mu1>2.0</mu1>
+        <mu2>2.0</mu2>
+    </gazebo>
+
+    <gazebo reference="right_wheel">
+        <mu1>2.0</mu1>
+        <mu2>2.0</mu2>
+    </gazebo>
+
+    <gazebo reference="caster_wheel">
+        <mu1>0.001</mu1>
+        <mu2>0.001</mu2>
+    </gazebo>
+
+    <!-- LiDAR Sensor configs -->
+    <gazebo reference="lidar_link">
+        <sensor name="lidar_sensor" type="gpu_lidar">
+            <pose>0 0 0 0 0 0</pose>
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+            <update_rate>10</update_rate>
+            <topic>/scan</topic>
+
+            <gz_frame_id>lidar_link</gz_frame_id>
+
+            <lidar>
+                <scan>
+                    <horizontal>
+                        <samples>360</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-3.14</min_angle>
+                        <max_angle>3.14</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.1</min>
+                    <max>10.0</max>
+                    <resolution>0.01</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.0</stddev>
+                </noise>
+            </lidar>
+        </sensor>
+    </gazebo>
+
+    
+    <!-- IMU Sensor configs -->
+    <gazebo reference="imu_link">
+        <sensor name="imu_sensor" type="imu">
+            <pose>0 0 0 0 0 0</pose>
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+            <update_rate>100</update_rate>
+
+            <topic>/imu</topic>
+            <gz_frame_id>imu_link</gz_frame_id>
+
+            <imu>
+                <angular_velocity>
+                    <x>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>0.0</stddev>
+                        </noise>
+                    </x>
+                    <y>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>0.0</stddev>
+                        </noise>
+                    </y>
+                    <z>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>0.0</stddev>
+                        </noise>
+                    </z>
+                </angular_velocity>
+
+                <linear_acceleration>
+                    <x>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>0.0</stddev>
+                        </noise>
+                    </x>
+                    <y>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>0.0</stddev>
+                        </noise>
+                    </y>
+                    <z>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>0.0</stddev>
+                        </noise>
+                    </z>
+                </linear_acceleration>
+            </imu>
+        </sensor>
+    </gazebo>
+
+    <!-- Diff Drive -->
+    <gazebo>
+        <plugin name="gz::sim::systems::DiffDrive"
+                filename="gz-sim-diff-drive-system">
+
+            <left_joint>left_wheel_joint</left_joint>
+            <right_joint>right_wheel_joint</right_joint>
+
+            <wheel_separation>${wheel_separation}</wheel_separation>
+            <wheel_radius>${wheel_radius}</wheel_radius>
+
+            <topic>/cmd_vel</topic>
+            <odom_topic>/odom</odom_topic>
+            <tf_topic>/tf</tf_topic>
+
+            <frame_id>odom</frame_id>
+            <child_frame_id>base_footprint</child_frame_id>
+
+            <publish_tf>true</publish_tf>
+            <publish_odom>true</publish_odom>
+
+        </plugin>
+    </gazebo>
+
+    <!-- Joint State Publisher -->
+    <gazebo>
+        <plugin filename="gz-sim-joint-state-publisher-system"
+                name="gz::sim::systems::JointStatePublisher">
+
+            <topic>/joint_states</topic>
+
+            <joint_name>left_wheel_joint</joint_name>
+            <joint_name>right_wheel_joint</joint_name>
+
+        </plugin>
+    </gazebo>
+
+</robot>

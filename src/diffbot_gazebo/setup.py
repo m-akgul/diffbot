@@ -25,7 +25,7 @@ setup(
     zip_safe=True,
     maintainer='merta',
     maintainer_email='81179831+m-akgul@users.noreply.github.com',
-    description='Robot simulation package for diffbot_bot',
+    description='Robot simulation package for diffbot',
     license='Apache-2.0',
     extras_require={
         'test': [

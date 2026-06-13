@@ -3,7 +3,7 @@
 <package format="3">
   <name>diffbot_gazebo</name>
   <version>0.0.0</version>
-  <description>Robot simulation package for diffbot_bot</description>
+  <description>Robot simulation package for diffbot</description>
   <maintainer email="81179831+m-akgul@users.noreply.github.com">merta</maintainer>
   <license>Apache-2.0</license>
 

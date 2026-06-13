@@ -128,7 +128,7 @@
             package='ros_gz_sim',
             executable='create',
             arguments=[
-                '-name', 'diffbot_bot',
+                '-name', 'diffbot',
                 '-topic', 'robot_description'
             ],
             output='screen'
@@ -141,7 +141,7 @@
         - `-name` -> name of robot inside Gazebo
         - `-topic` -> where robot model is
 
-    The code above equals to `ros2 run ros_gz_sim create -name diffbot_bot -topic robot_description`
+    The code above equals to `ros2 run ros_gz_sim create -name diffbot -topic robot_description`
 
 3. Move robot in Gazebo (Using Gazebo Bridge)
 
@@ -246,7 +246,7 @@ If a file is not declared in `setup.py`:
 
     ```xml
         <?xml version="1.0"?>
-        <robot name="diffbot_bot">
+        <robot name="diffbot">
 
             <!-- Base and Chassis-->
             <link name="base_footprint"/>

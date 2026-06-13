@@ -26,7 +26,7 @@ def generate_launch_description():
     urdf_path = PathJoinSubstitution([
         pkg_robot,
         'urdf',
-        'diffbot.urdf'
+        'diffbot.urdf.xacro'
     ])
 
     rviz_conf = PathJoinSubstitution([
@@ -115,7 +115,7 @@ def generate_launch_description():
         executable='create',
         name='spawn_robot',
         arguments=[
-            '-name', 'diffbot_bot',
+            '-name', 'diffbot',
             '-topic', 'robot_description'
         ],
         output='screen',
