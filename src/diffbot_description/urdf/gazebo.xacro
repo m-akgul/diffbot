@@ -51,7 +51,7 @@
         </sensor>
     </gazebo>
 
-    
+
     <!-- IMU Sensor configs -->
     <gazebo reference="imu_link">
         <sensor name="imu_sensor" type="imu">
@@ -112,7 +112,7 @@
     <!-- Diff Drive -->
     <gazebo>
         <plugin name="gz::sim::systems::DiffDrive"
-                filename="gz-sim-diff-drive-system">
+            filename="gz-sim-diff-drive-system">
 
             <left_joint>left_wheel_joint</left_joint>
             <right_joint>right_wheel_joint</right_joint>
@@ -136,13 +136,28 @@
     <!-- Joint State Publisher -->
     <gazebo>
         <plugin filename="gz-sim-joint-state-publisher-system"
-                name="gz::sim::systems::JointStatePublisher">
+            name="gz::sim::systems::JointStatePublisher">
 
             <topic>/joint_states</topic>
 
             <joint_name>left_wheel_joint</joint_name>
             <joint_name>right_wheel_joint</joint_name>
 
+        </plugin>
+    </gazebo>
+
+    <!-- Plugins for Sensors -->
+    <gazebo>
+        <!-- Lidar -->
+        <plugin
+            filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
+            <render_engine>ogre2</render_engine>
+        </plugin>
+        <!-- IMU -->
+        <plugin
+            filename="gz-sim-imu-system"
+            name="gz::sim::systems::Imu">
         </plugin>
     </gazebo>
 
