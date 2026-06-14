@@ -68,19 +68,19 @@
                     <x>
                         <noise type="gaussian">
                             <mean>0.0</mean>
-                            <stddev>0.0</stddev>
+                            <stddev>0.0002</stddev>
                         </noise>
                     </x>
                     <y>
                         <noise type="gaussian">
                             <mean>0.0</mean>
-                            <stddev>0.0</stddev>
+                            <stddev>0.0002</stddev>
                         </noise>
                     </y>
                     <z>
                         <noise type="gaussian">
                             <mean>0.0</mean>
-                            <stddev>0.0</stddev>
+                            <stddev>0.0002</stddev>
                         </noise>
                     </z>
                 </angular_velocity>
@@ -89,19 +89,19 @@
                     <x>
                         <noise type="gaussian">
                             <mean>0.0</mean>
-                            <stddev>0.0</stddev>
+                            <stddev>0.0002</stddev>
                         </noise>
                     </x>
                     <y>
                         <noise type="gaussian">
                             <mean>0.0</mean>
-                            <stddev>0.0</stddev>
+                            <stddev>0.0002</stddev>
                         </noise>
                     </y>
                     <z>
                         <noise type="gaussian">
                             <mean>0.0</mean>
-                            <stddev>0.0</stddev>
+                            <stddev>0.0002</stddev>
                         </noise>
                     </z>
                 </linear_acceleration>
@@ -127,7 +127,7 @@
             <frame_id>odom</frame_id>
             <child_frame_id>base_footprint</child_frame_id>
 
-            <publish_tf>true</publish_tf>
+            <publish_tf>false</publish_tf>
             <publish_odom>true</publish_odom>
 
         </plugin>

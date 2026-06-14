@@ -41,6 +41,12 @@ def generate_launch_description():
         'bridge.yaml'
     ])
 
+    ekf_conf = PathJoinSubstitution([
+        pkg_gz_sim,
+        'config',
+        'ekf.yaml'
+    ])
+
     # ========== Launch Arguments ==========
     declare_rviz = DeclareLaunchArgument(
         'rviz',
@@ -150,6 +156,17 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
+    ekf = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[
+            ekf_conf, 
+            {'use_sim_time': True}
+        ]
+    )
+
     # ========== SLAM Toolbox ==========
     slam = IncludeLaunchDescription(
         slam_launch,
@@ -172,5 +189,6 @@ def generate_launch_description():
         rsp_node,
         delayed_spawn,
         bridge,
-        rviz
+        rviz,
+        ekf
     ])
