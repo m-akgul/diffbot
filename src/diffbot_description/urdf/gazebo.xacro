@@ -109,8 +109,15 @@
         </sensor>
     </gazebo>
 
-    <!-- Diff Drive -->
+    <!-- ROS 2 Control -->
     <gazebo>
+        <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <parameters>$(find diffbot_gazebo)/config/controller.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+    <!-- Diff Drive -->
+    <!-- <gazebo>
         <plugin name="gz::sim::systems::DiffDrive"
             filename="gz-sim-diff-drive-system">
 
@@ -131,7 +138,7 @@
             <publish_odom>true</publish_odom>
 
         </plugin>
-    </gazebo>
+    </gazebo> -->
 
     <!-- Joint State Publisher -->
     <gazebo>

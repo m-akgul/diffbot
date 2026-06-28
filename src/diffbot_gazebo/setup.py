@@ -34,6 +34,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'ros2control_compatibility = diffbot_gazebo.ros2control_compatibility:main',
         ],
     },
 )

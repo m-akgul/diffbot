@@ -1,8 +1,8 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler
-from launch.event_handlers import OnProcessStart
+from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch_ros.actions import Node
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, LaunchConfiguration, OrSubstitution, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -47,6 +47,12 @@ def generate_launch_description():
         'ekf.yaml'
     ])
 
+    controller_conf = PathJoinSubstitution([
+        pkg_gz_sim,
+        'config',
+        'controller.yaml'
+    ])
+
     # ========== Launch Arguments ==========
     declare_rviz = DeclareLaunchArgument(
         'rviz',
@@ -65,6 +71,18 @@ def generate_launch_description():
         default_value='true',
         description='Launch Teleop'
     )
+    
+    declare_twist_to_stamped = DeclareLaunchArgument(
+        'twist_to_stamped',
+        default_value='true',
+        description='Convert Twist to TwistStamped'
+    )
+
+    declare_odom_relay = DeclareLaunchArgument(
+        'odom_relay',
+        default_value='true',
+        description='Relay Odometry'
+    )
 
     # ========== Other Launch Files ==========
     slam_launch = PythonLaunchDescriptionSource(
@@ -82,6 +100,54 @@ def generate_launch_description():
             'teleop.launch.py'
         ])
     )
+
+    # ========== SLAM Toolbox ==========
+    slam = IncludeLaunchDescription(
+        slam_launch,
+        condition=IfCondition(LaunchConfiguration('slam'))
+    )
+
+    # ========== Teleop ==========
+    # command path:
+    #
+    #   teleop_gui
+    #       ↓
+    #   teleop_arbiter  /   nav2_controller
+    #                   ↓
+    #               /cmd_vel
+    #                   ↓
+    #               twist_to_stamped (if compatibility node enabled)
+    #                   ↓
+    #               /diff_drive_base_controller/cmd_vel
+    #                   ↓
+    #               diff_drive_controller
+    #                   ↓
+    #               gz_ros2_control
+    #                   ↓
+    #               wheel joints
+    teleop = IncludeLaunchDescription(
+        teleop_launch,
+        condition=IfCondition(LaunchConfiguration('teleop'))
+    )
+
+    # ========== ROS2 Control Compatibility Node ==========
+    ros2_control_compatibility = Node(
+        package='diffbot_gazebo',
+        executable='ros2control_compatibility',
+        name='ros2_control_compatibility',
+        output='screen',
+        condition=IfCondition(
+            OrSubstitution(
+                LaunchConfiguration('twist_to_stamped'),
+                LaunchConfiguration('odom_relay')
+            )
+        ),
+        parameters=[{
+            'twist_to_stamped': LaunchConfiguration('twist_to_stamped'),
+            'odom_relay': LaunchConfiguration('odom_relay')
+        }]
+    )
+
     
     # ========== Gazebo Simulation ==========
     # -r -> run simulation immediately
@@ -156,6 +222,7 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
+    # ========== EKF ==========
     ekf = Node(
         package='robot_localization',
         executable='ekf_node',
@@ -167,28 +234,54 @@ def generate_launch_description():
         ]
     )
 
-    # ========== SLAM Toolbox ==========
-    slam = IncludeLaunchDescription(
-        slam_launch,
-        condition=IfCondition(LaunchConfiguration('slam'))
+    # ========== Controller Spawners ==========
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        output='screen',
+        arguments=[
+            'joint_state_broadcaster'
+        ]
+    )
+    diff_drive_base_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        output='screen',
+        arguments=[
+            'diff_drive_base_controller',
+            '--param-file',
+            controller_conf
+        ]
     )
 
-    # ========== Teleop ==========
-    teleop = IncludeLaunchDescription(
-        teleop_launch,
-        condition=IfCondition(LaunchConfiguration('teleop'))
+    delayed_joint_state_broadcaster_spawner = RegisterEventHandler(
+        OnProcessExit(
+            target_action=spawn_robot,
+            on_exit=[joint_state_broadcaster_spawner]
+        )
+    )
+    delayed_diff_drive_spawner = RegisterEventHandler(
+        OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[diff_drive_base_controller_spawner]
+        )
     )
 
     return LaunchDescription([
         declare_rviz,
         declare_slam,
         declare_teleop,
+        declare_twist_to_stamped,
+        declare_odom_relay,
         teleop,
+        ros2_control_compatibility,
         slam,
         gazebo,
         rsp_node,
         delayed_spawn,
         bridge,
         rviz,
-        ekf
+        ekf,
+        delayed_joint_state_broadcaster_spawner,
+        delayed_diff_drive_spawner
     ])

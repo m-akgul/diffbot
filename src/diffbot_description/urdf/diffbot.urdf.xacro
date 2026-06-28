@@ -6,6 +6,8 @@
     <xacro:include filename="constants.xacro"/>
     <xacro:include filename="materials.xacro"/>
 
+    <xacro:include filename="ros2_control.xacro"/>
+    
     <xacro:include filename="base.xacro"/>
     <xacro:include filename="wheels.xacro"/>
     <xacro:include filename="sensors.xacro"/>
