@@ -8,6 +8,12 @@ from rclpy.node import Node
 
 from cv_bridge import CvBridge
 
+from geometry_msgs.msg import TransformStamped
+
+from tf2_ros import TransformBroadcaster
+
+from scipy.spatial.transform import Rotation
+
 from sensor_msgs.msg import Image, CameraInfo
 
 from std_msgs.msg import Int32MultiArray
@@ -40,6 +46,11 @@ class ArucoDetector(Node):
             0.10
         )
 
+        self.declare_parameter(
+            'camera_frame',
+            'camera_link'
+        )
+
         image_topic = self.get_parameter(
             'image_topic'
         ).value
@@ -50,6 +61,10 @@ class ArucoDetector(Node):
 
         self.marker_length = self.get_parameter(
             'marker_length'
+        ).value
+
+        self.camera_frame = self.get_parameter(
+            'camera_frame'
         ).value
 
         ##################################################
@@ -107,6 +122,8 @@ class ArucoDetector(Node):
 
         ##################################################
 
+        self.tf_broadcaster = TransformBroadcaster(self)
+
         self.get_logger().info(
             'ArUco detector started.'
         )
@@ -136,6 +153,8 @@ class ArucoDetector(Node):
 
     def image_callback(self, msg):
 
+        self.current_stamp = msg.header.stamp
+
         frame = self.convert_image(msg)
 
         corners, ids = self.detect_markers(frame)
@@ -143,6 +162,12 @@ class ArucoDetector(Node):
         rvecs, tvecs = self.estimate_pose(corners)
 
         self.publish_markers(ids)
+
+        self.broadcast_transforms(
+            ids,
+            rvecs,
+            tvecs
+        )
 
         self.draw_overlay(
             frame,
@@ -224,6 +249,72 @@ class ArucoDetector(Node):
             )
 
             self.last_ids = current_ids
+
+    ##################################################
+
+    def broadcast_transforms(self, ids, rvecs, tvecs):
+
+        if ids is None:
+            return
+
+        if rvecs is None:
+            return
+
+        stamp = self.get_clock().now().to_msg()
+
+        for i in range(len(ids)):
+
+            transform = TransformStamped()
+
+            transform.header.stamp = self.current_stamp
+
+            transform.header.frame_id = (
+                self.camera_frame
+            )
+
+            transform.child_frame_id = (
+                f'aruco_{int(ids[i][0])}'
+            )
+
+            transform.transform.translation.x = (
+                float(tvecs[i][0][0])
+            )
+
+            transform.transform.translation.y = (
+                float(tvecs[i][0][1])
+            )
+
+            transform.transform.translation.z = (
+                float(tvecs[i][0][2])
+            )
+
+            rotation_matrix, _ = cv2.Rodrigues(
+                rvecs[i]
+            )
+
+            quaternion = Rotation.from_matrix(
+                rotation_matrix
+            ).as_quat()
+
+            transform.transform.rotation.x = (
+                float(quaternion[0])
+            )
+
+            transform.transform.rotation.y = (
+                float(quaternion[1])
+            )
+
+            transform.transform.rotation.z = (
+                float(quaternion[2])
+            )
+
+            transform.transform.rotation.w = (
+                float(quaternion[3])
+            )
+
+            self.tf_broadcaster.sendTransform(
+                transform
+            )
 
     ##################################################
 

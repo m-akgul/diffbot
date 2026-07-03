@@ -246,6 +246,48 @@
             </link>
         
         </model>
+        
+        <model name="marker_aruco">
+
+            <static>true</static>
+        
+            <pose>1 0 0.7 0 0 0</pose>
+
+            <link name="marker_link">
+
+                <!-- Thin collision box -->
+                <collision name="collision">
+                  <geometry>
+                    <box>
+                      <size>0.20 0.02 0.20</size>
+                    </box>
+                  </geometry>
+                </collision>
+                <!-- Visual with ArUco texture -->
+                <visual name="visual">
+                  <geometry>
+                    <box>
+                      <size>0.20 0.02 0.20</size>
+                    </box>
+                  </geometry>
+          
+                  <material>
+                    <ambient>1 1 1 1</ambient>
+                    <diffuse>1 1 1 1</diffuse>
+                    <specular>0.1 0.1 0.1 1</specular>
+          
+                    <pbr>
+                      <metal>
+                        <albedo_map>aruco-markers.png</albedo_map>
+                        <roughness>1.0</roughness>
+                        <metalness>0.0</metalness>
+                      </metal>
+                    </pbr>
+                  </material>
+                </visual>
+          
+              </link>
+        </model>
 
     </world>
 </sdf>
