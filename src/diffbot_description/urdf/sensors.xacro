@@ -37,6 +37,7 @@
         <origin xyz="0.2 0 0.08"/>
     </joint>
 
+    <!-- IMU -->
     <link name="imu_link">
 
         <visual>
@@ -69,6 +70,39 @@
         <parent link="chassis"/>
         <child link="imu_link"/>
         <origin xyz="0 0 0.06"/>
+    </joint>
+
+    <!-- Camera -->
+    <link name="camera_link">
+        <visual>
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+
+        <collision>
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <mass value="0.01" />
+            <inertia
+                ixx="0.0001"
+                ixy="0"
+                ixz="0"
+                iyy="0.0001"
+                iyz="0"
+                izz="0.0001"/>
+        </inertial>
+    </link>
+
+    <joint name="camera_joint" type="fixed">
+        <parent link="chassis"/>
+        <child link="camera_link"/>
+        <origin xyz="0.25 0 0"/>
     </joint>
 
 </robot>
