@@ -18,21 +18,27 @@ class ImageViewer(Node):
 
         self.bridge = CvBridge()
 
+        self.declare_parameter(
+            'image_topic',
+            '/camera/image_raw'
+        )
+
+        image_topic = self.get_parameter('image_topic').value
+
         self.subscription = self.create_subscription(
             Image,
-            '/camera/image_raw',
+            image_topic,
             self.image_callback,
             10
         )
 
         self.get_logger().info(
-            'Waiting for camera images...'
+            f'Subscribed to {image_topic}. Waiting for camera images...'
         )
 
     def image_callback(self, msg):
 
         try:
-
             frame = self.bridge.imgmsg_to_cv2(
                 msg,
                 desired_encoding='bgr8'

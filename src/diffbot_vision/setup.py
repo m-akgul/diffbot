@@ -26,6 +26,7 @@ setup(
     entry_points={
         'console_scripts': [
             'image_viewer = diffbot_vision.image_viewer:main',
+            'aruco_detector = diffbot_vision.aruco_detector:main',
         ],
     },
 )
